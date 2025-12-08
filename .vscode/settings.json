@@ -1,0 +1,11 @@
+{
+    "Lua.diagnostics.globals": [
+        "love"
+    ],
+    "Lua.diagnostics.disable": [
+        "undefined-global",
+        "lowercase-global",
+        "deprecated",
+        "discard-returns"
+    ]
+}

@@ -1,7 +1,7 @@
-local ogType = type
+_type = type
 
 type = function(value)
-    local t = ogType(value)
+    local t = _type(value)
     if t == "table" and value.CreateProperty then
         return "Object"
     end
@@ -9,7 +9,7 @@ type = function(value)
 end
 
 typeof = function(value)
-	local t = ogType(value)
+	local t = _type(value)
 	if t == "table" then
 		return value.__type or t
 	end

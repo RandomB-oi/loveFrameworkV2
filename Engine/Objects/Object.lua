@@ -3,18 +3,32 @@ This is the parent class for every object in the framework
 This class has object properties with changed values, and hierarchal structure
 
 Object:GetID() -> string|any -- returns the objects id, if none is given during creation, a default one will be generated
+
 Object:GetProperty(name : string) -> any -- returns the stored value of a property, and if none was given, it will return the default value
+
+-- you can change the property without firing the changed signal by manually setting it with dot notation (Frame.BackgroundColor = Color.new(1,1,1,1))
 Object:SetProperty(name : string, value : any) -> self -- tries to set the property value, returns self for chaining
+
 Object:SetProperties(list : {[string] : any}) -> self -- bulk calls SetProperty with the values
+
 Object:GetPropertyChangedSignal(name : string) -> GCSignal -- returns a GCSignal that fires when the property detects a change through :SetProperty
+
 Object:BindToProperty(name : string, callback : (any)) -> GCSignalConnection -- calls the callback with the initial propery value, and any changes after
+
 Object:GetChildren(recursive : boolean?) -> {Object} -- returns a list of all the children, if recursive, it will get all of their children and so on
+
 Object:FindChild(name : string, recursive : boolean?) -> Object? -- tries to find a child with the specified name, if recursive, it will search all subchildren and so on
+
 Object:GetConstraint(constraintType : string) -> Object? -- returns the constraint if there is one
+
 Object:IsSimulated() -> boolean -- recursive parent check for the Simulated property
+
 Object:IsVisible() -> boolean -- recursive parent check for the Visible property
+
 Object:Update(dt : number) -- updates the object
+
 Object:Draw() -- draws the object
+
 Object:Destroy() -- cleans up the object
 
 Object/ObjectClass:IsA(checkType:string) -> boolean -- checks all parent classes to see if it matches
@@ -51,17 +65,6 @@ local TypeCleaners = {
 	end,
 }
 
-math.randomseed(os.time())
-local function GenerateID()
-    local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-    local guid = template:gsub("[xy]", function(c)
-        local r = math.random(0, 15)
-        local v = (c == 'x') and r or (r % 4 + 8) -- For 'y', ensure it's 8, 9, A, or B
-        return string.format("%x", v)
-    end)
-    return guid
-end
-
 function module.GetClass(className)
     return RegisteredClasses[className]
 end
@@ -82,7 +85,7 @@ module.new = function(id)
     self.ChildAdded = self.Maid:Add(Signal.new())
     self.ChildRemoved = self.Maid:Add(Signal.new())
     
-    self.ID = id or GenerateID()
+    self.ID = id or string.GenerateID()
 
     self:GetPropertyChangedSignal("Parent"):Connect(function(newParent)
         self.Maid.ParentMaid = nil
@@ -223,7 +226,7 @@ function module:FindChild(name, recursive)
 end
 
 function module:GetConstraint(constraintType)
-	local constraintChildren = rawget(self, "_constraintChildren")
+	local constraintChildren = rawget(self, "_cC")
 	if not constraintChildren then return end
 	return constraintChildren[constraintType]
 end
@@ -335,11 +338,11 @@ function module:Register()
     RegisteredClasses[self.__type] = self
 
     if not rawget(self, "new") then
-        self.new = function(...)
-            local new = setmetatable(self.__base.new(...), module)
+        rawset(self, "new", function(...)
+            local new = setmetatable(self.__base.new(...), self)
 
             return new
-        end
+        end)
     end
     return self
 end

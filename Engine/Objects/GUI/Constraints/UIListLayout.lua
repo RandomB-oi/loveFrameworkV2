@@ -58,6 +58,7 @@ function module:BindToParent(parent)
 		self.ParentMaid[child] = nil
 	end))
 	self._updateOrder = true
+	parent._updateRender = true
 end
 
 function module:Update(dt)

@@ -18,7 +18,7 @@ module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
 
 	self.ParentMaid = self.Maid:Add(Maid.new())
-
+	
 	self:GetPropertyChangedSignal("Parent"):Connect(function()
 		self:UpdateParent()
 	end)
@@ -38,16 +38,16 @@ function module:UpdateParent()
 	local parent = self:GetProperty("Parent")
 	if not parent then return end
 
-	if not parent._constraintChildren then
-		parent._constraintChildren = {}
+	if not parent._cC then -- constraint children
+		parent._cC = {}
 	end
-	parent._constraintChildren[self.ConstraintCategory] = self
+	parent._cC[self.ConstraintCategory] = self
 
 	self.ParentMaid:GiveTask(function()
-		if parent._constraintChildren and parent._constraintChildren[self.ConstraintCategory] == self then
-			parent._constraintChildren[self.ConstraintCategory] = nil
-			if not next(parent._constraintChildren) then
-				parent._constraintChildren = nil
+		if parent._cC and parent._cC[self.ConstraintCategory] == self then
+			parent._cC[self.ConstraintCategory] = nil
+			if not next(parent._cC) then
+				parent._cC = nil
 			end
 		end
 	end)

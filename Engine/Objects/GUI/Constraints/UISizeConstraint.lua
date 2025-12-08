@@ -12,4 +12,11 @@ module:SetDefaultProperyValue("Name", module.__type)
 module:CreateProperty("Min", "Vector", Vector.new(0,0))
 module:CreateProperty("Max", "Vector", Vector.new(math.huge,math.huge))
 
+function module:BindToParent(parent)
+	self.ParentMaid:GiveTask(self.Changed:Connect(function()
+		parent._updateRender = true
+	end))
+	parent._updateRender = true
+end
+
 return module:Register()

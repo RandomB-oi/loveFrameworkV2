@@ -11,6 +11,7 @@ module:CreateProperty("Size", "UDim2", UDim2.new(0,100,0,100))
 module:CreateProperty("Position", "UDim2", UDim2.new(0,0,0,0))
 module:CreateProperty("AnchorPoint", "Vector", Vector.new(0,0))
 module:CreateProperty("BackgroundColor", "Color", Color.new(1,1,1,1))
+module:CreateProperty("LayoutOrder", "number", 1)
 
 
 module.new = function(...)
@@ -48,6 +49,12 @@ function module:GetModifiedSize(size)
 		size = Vector.new(math.clamp(size.X, min.X, max.X), math.clamp(size.Y, min.Y, max.Y))
 	end
 
+    local scale = self:GetConstraint("Scale")
+    if scale then
+        local scaleValue = scale:GetProperty("Scale")
+        size = size * scaleValue
+    end
+
 	if ratio then
 		local targetWidth = size.Y * ratio
 		local targetHeight = size.X / ratio
@@ -63,7 +70,7 @@ end
 
 function module:GetPadding()
 	local topLeft, bottomRight = Vector.zero, Vector.zero
-	
+    
 	local padding = self:GetConstraint("Padding")
 	if padding then
 		topLeft = topLeft + padding.TopLeft
@@ -85,11 +92,18 @@ function module:UpdateRenderProperties(parentPos, parentSize)
 
     local newPos, newSize
 
+    if parent.GetPadding then
+        local paddingTL, paddingBR = parent:GetPadding()
+        parentPos = parentPos + paddingTL
+        parentSize = parentSize - (paddingBR + paddingTL)
+    end
+
+    local anchor = self:GetProperty("AnchorPoint")
     local listLayout = parent and parent:GetConstraint("List")
     if listLayout then
         newSize, newPos = listLayout:Resolve(self, parentSize, parentPos)
     else
-        local pos, size, anchor = self:GetProperty("Position"), self:GetProperty("Size"), self:GetProperty("AnchorPoint")
+        local pos, size = self:GetProperty("Position"), self:GetProperty("Size")
         newSize = self:GetModifiedSize(size:Calculate(parentSize))
         newPos = parentPos + pos:Calculate(parentSize) - newSize * anchor
     end
@@ -108,6 +122,7 @@ end
 
 function module:Update(dt)
     if self._updateRender then
+        print("update")
         self:UpdateRenderProperties()
     end
 end

@@ -40,6 +40,9 @@ function module:UpdateOffsets()
 
 	self.TopLeft = UDim2.fromUDims(self.PaddingLeft, self.PaddingTop):Calculate(parentSize)
 	self.BottomRight = UDim2.fromUDims(self.PaddingRight, self.PaddingBottom):Calculate(parentSize)
+	if parent then
+		parent._updateRender = true
+	end
 end
 
 return module:Register()

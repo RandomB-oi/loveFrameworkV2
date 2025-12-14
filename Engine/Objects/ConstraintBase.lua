@@ -9,6 +9,7 @@ module.__type = "ConstraintBase"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/UIAspectRatioConstraint.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 

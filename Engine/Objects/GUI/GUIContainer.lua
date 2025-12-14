@@ -4,6 +4,7 @@ module.__type = "GUIContainer"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/ScreenGui.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 
@@ -20,12 +21,29 @@ function module:IsVisible()
     return self:GetProperty("Visible")
 end
 
-function module:UpdateSize()
-    local newSize = Vector.new(love.graphics.getDimensions())
-    local prevSize = self.RenderSize
+function module:GetTransform()
+    local parent = self:GetProperty("Parent")
+    while parent do
+        if parent.RenderSize and parent.RenderPosition then
+            return parent.RenderSize, parent.RenderPosition
+        end
+        parent = parent:GetProperty("Parent")
+    end
+    
+    local screenSize = Vector.new(love.graphics.getDimensions())
+    local origin = Vector.zero
+    return screenSize, origin
+end
 
-    if prevSize ~= newSize then
+function module:UpdateSize()
+    local newSize, newPos = self:GetTransform()
+
+    local prevSize = self.RenderSize
+    local prevPos = self.RenderPosition
+
+    if prevSize ~= newSize or prevPos ~= newPos then
         self.RenderSize = newSize
+        self.RenderPosition = newPos
         return true
     end
 end
@@ -44,8 +62,8 @@ function module:Update(dt)
     end
 end
 
-function module:Draw()
-    love.graphics.circle("fill", (math.cos(os.clock())/2+0.5)*800, (math.sin(os.clock())/2+0.5)*600, 10)
-end
+-- function module:Draw()
+--     love.graphics.circle("fill", (math.cos(os.clock())/2+0.5)*800, (math.sin(os.clock())/2+0.5)*600, 10)
+-- end
 
 return module:Register()

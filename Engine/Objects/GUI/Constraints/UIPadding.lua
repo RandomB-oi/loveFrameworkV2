@@ -38,8 +38,8 @@ function module:UpdateOffsets()
 	local parent = self:GetProperty("Parent")
 	local parentSize = parent and parent.RenderSize or Vector.zero
 
-	self.TopLeft = UDim2.fromUDims(self.PaddingLeft, self.PaddingTop):Calculate(parentSize)
-	self.BottomRight = UDim2.fromUDims(self.PaddingRight, self.PaddingBottom):Calculate(parentSize)
+	self.TopLeft = UDim2.fromUDims(self:GetProperty("PaddingLeft"), self:GetProperty("PaddingTop")):Calculate(parentSize)
+	self.BottomRight = UDim2.fromUDims(self:GetProperty("PaddingRight"), self:GetProperty("PaddingBottom")):Calculate(parentSize)
 	if parent then
 		parent._updateRender = true
 	end

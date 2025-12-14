@@ -104,3 +104,4 @@ end
 Object = require("Engine.Objects.Object")
 autoLoad("Engine/Objects")
 Game = Object.Create("DataModel","DataModel")
+return Game

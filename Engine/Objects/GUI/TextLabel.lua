@@ -12,6 +12,7 @@ local function GetDefaultFont()
 	return DefaultFont
 end
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/TextLabel.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 
@@ -33,7 +34,7 @@ module.new = function(...)
 end
 
 function module:GetDesiredText()
-	return self:GetProperty("TextLabel")
+	return self:GetProperty("Text")
 end
 
 function module:UpdateText()

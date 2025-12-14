@@ -9,15 +9,19 @@ module:SetDefaultProperyValue("Name", module.__type)
 
 module.new = function()
     local self = setmetatable(module.__base.new(module.__type), module)
-    
+    self.Services = {}
     return self
 end
 
 function module:GetService(name)
+    if self.Services[name] then
+        return self.Services[name]
+    end
     local class = Object.GetClass(name)
     if not (class and class:IsA("Service")) then return end
 
-    return Object.Create(name, name)
+    self.Services[name] = Object.Create(name, name)
+    return self.Services[name]
 end
 
 return module:Register()

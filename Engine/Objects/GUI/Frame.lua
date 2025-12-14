@@ -4,6 +4,7 @@ module.__type = "Frame"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/Frame.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 
@@ -21,8 +22,17 @@ module.new = function(...)
     self.RenderSize = Vector.zero
 
     self:GetPropertyChangedSignal("Parent"):Connect(function(newParent)
+        self.Maid.FPM = nil
+
         if newParent then
             newParent._updateRender = nil
+
+            -- local parentMaid = Maid.new()
+            -- self.Maid.FPM = parentMaid
+            
+            -- parentMaid:GiveTask(function()
+                
+            -- end)
         end
     end)
 
@@ -80,10 +90,22 @@ function module:GetPadding()
 	return topLeft, bottomRight
 end
 
+function module:GetWindowRenderProperties()
+    return Vector.zero, Vector.new(love.graphics.getDimensions())
+end
+
 function module:UpdateRenderProperties(parentPos, parentSize)
     local parent = self:GetProperty("Parent")
+    if not parent then
+        self.RenderPosition = Vector.zero
+        self.RenderSize = Vector.zero
+        return
+    end
+
     if not (parentPos and parentSize) then
-        if not (parent and parent.RenderPosition and parent.RenderSize) then return end
+        if not (parent and parent.RenderPosition and parent.RenderSize) then
+            return
+        end
         return self:UpdateRenderProperties(parent.RenderPosition, parent.RenderSize)
     end
 
@@ -120,9 +142,27 @@ function module:UpdateRenderProperties(parentPos, parentSize)
     end
 end
 
+function module:MouseHovering()
+	return self:IsHovering(Game:GetService("InputService"):GetMouseLocation())
+end
+
+local function mouseInsideFrame(self, position)
+	return
+		position.X >= self.RenderPosition.X and position.X <= self.RenderPosition.X + self.RenderSize.X and
+		position.Y >= self.RenderPosition.Y and position.Y <= self.RenderPosition.Y + self.RenderSize.Y
+end
+
+function module:IsHovering(position)
+	-- local scrollingFrame = self:FindFirstAncestorWhichIsA("ScrollingFrame")
+	-- if scrollingFrame and not mouseInsideFrame(scrollingFrame, position) then
+	-- 	return
+	-- end
+	
+	return mouseInsideFrame(self, position)
+end
+
 function module:Update(dt)
     if self._updateRender then
-        print("update")
         self:UpdateRenderProperties()
     end
 end

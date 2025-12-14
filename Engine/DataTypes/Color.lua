@@ -117,5 +117,6 @@ function module:Apply()
 end
 
 module.White = module.new(1,1,1,1)
+module.Blank = module.new(0,0,0,0)
 
 return module

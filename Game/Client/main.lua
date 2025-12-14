@@ -1,33 +1,80 @@
 local InputService = Game:GetService("InputService")
 
-InputService.InputBegan:Connect(function(input)
-    for i,v in next, input do
-        print(i,v)
-    end
-end)
+-- Inpu-tService.InputBegan:Connect(function(input)
+--     for i,v in next, input do
+--         print(i,v)
+--     end
+-- end)
 
-local guiMain = Object.Create("GUIContainer")
-:SetProperty("Parent", Game)
+local Viewport = Object.Create("GUIContainer"):SetProperties({
+    Parent = Game,
+})
+local guiMainFrame = Object.Create("Frame"):SetProperties({
+    Size = UDim2.new(0.5, 0, 0.5, 0),
+    Position = UDim2.new(0.5, 0, 0.5, 0),
+    AnchorPoint = Vector.one/2,
+    BackgroundColor = Color.new(1,1,1,.5),
+    Parent = Viewport,
+})
+
+local folderParent = guiMainFrame
+for i = 1, 3 do
+    folderParent = Object.Create("Folder"):SetProperties({
+        Name = "Folder"..tostring(i),
+        Parent = folderParent,
+    })
+end
+
+local guiMain = Object.Create("GUIContainer"):SetProperties({
+    Parent = folderParent,
+})
 
 
-local a = Object.Create("Frame"):SetProperty("Size", UDim2.new(0,300,0,100)):SetProperty("BackgroundColor", Color.new(1,0,1,1)):SetProperty("Parent", guiMain)
-Object.Create("UIScale"):SetProperty("Scale", 2):SetProperty("Parent", a)
-Object.Create("UIAspectRatioConstraint"):SetProperty("AspectRatio", 2):SetProperty("Parent", a)
-Object.Create("UISizeConstraint"):SetProperty("Max", Vector.new(100,math.huge)):SetProperty("Parent", a)
+local a = Object.Create("Frame"):SetProperties({
+    Size = UDim2.new(0,300,0,100),
+    BackgroundColor = Color.new(1,0,1,1),
+    Parent = guiMain,
+})
 
-Object.Create("Frame"):SetProperty("Parent", guiMain):SetProperty("Size", UDim2.new(0,50,0,100)):SetProperty("BackgroundColor", Color.new(1,1,0,1))
+Object.Create("UIScale"):SetProperties({
+    Scale = 2,
+    Parent = a,
+})
 
-Object.Create("UIListLayout"):SetProperty("Parent", guiMain)
+Object.Create("UIAspectRatioConstraint"):SetProperties({
+    AspectRatio = 2,
+    Parent = a,
+})
+
+Object.Create("UISizeConstraint"):SetProperties({
+    Max = Vector.new(100,math.huge),
+    Parent = a,
+})
+
+Object.Create("Frame"):SetProperties({
+    Parent = guiMain,
+    Size = UDim2.new(0,50,0,100),
+    BackgroundColor = Color.new(1,1,0,1),
+})
+
+Object.Create("UIListLayout"):SetProperties({
+    Parent = guiMain,
+})
 
 
-Object.Create("UIPadding"):SetProperty("Parent", a)
-:SetProperty("PaddingLeft", UDim.new(0,6))
-:SetProperty("PaddingRight", UDim.new(0,6))
-:SetProperty("PaddingTop", UDim.new(0,6))
-:SetProperty("PaddingBottom", UDim.new(0,6))
-Object.Create("Frame"):SetProperty("Parent", a):SetProperty("Size", UDim2.new(1,0,1,0)):SetProperty("BackgroundColor", Color.new(1,0,1,1))
+Object.Create("UIPadding"):SetProperties({
+    Parent = a,
+    PaddingLeft = UDim.new(0,6),
+    PaddingRight = UDim.new(0,6),
+    PaddingTop = UDim.new(0,6),
+    PaddingBottom = UDim.new(0,6),
+})
 
-print(string.tostring(Game))
+Object.Create("Frame"):SetProperties({
+    Parent = a,
+    Size = UDim2.new(1,0,1,0),
+    BackgroundColor = Color.new(1,0,1,1),
+})
 
 task.spawn(function()
     while task.wait() do

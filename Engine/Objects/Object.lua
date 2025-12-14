@@ -46,6 +46,7 @@ module.__type = "Object"
 module.ClassProperties = {}
 local All = {}
 local RegisteredClasses = {}
+module.ClassIcon = "Engine/Assets/InstanceIcons/Unknown.png"
 
 local function PropertyTypeMatches(value, desiredType)
 	if desiredType == "any" then return true end
@@ -75,6 +76,7 @@ function module.Create(className, id, ...)
     end
 
     local class = RegisteredClasses[className]
+    if not class then print(className) end
     return class.new(id, ...)
 end
 
@@ -149,8 +151,13 @@ function module:SetProperty(name, value)
 end
 
 function module:SetProperties(list)
+    local parent = list.Parent
+    list.Parent = nil
     for prop, value in next, list do
         self:SetProperty(prop, value)
+    end
+    if parent ~= nil then
+        self:SetProperty("Parent", parent)
     end
     return self
 end
@@ -253,6 +260,16 @@ function module:IsVisible()
 	return true
 end
 
+function module:GetFullName()
+	local path = {}
+	local object = self
+	while object do
+		table.insert(path, object:GetProperty("Name"))
+		object = object:GetProperty("Parent")
+	end
+	return table.concat(table.reverse(path),".")
+end
+
 -- loops
 function module:_update(dt)
     if not self:GetProperty("Simulated") then return false end
@@ -262,15 +279,11 @@ function module:_update(dt)
     for _, child in ipairs(self:GetChildren()) do
         child:_update(dt)
     end
+    return true
 end
 
-function module:_draw()
-    if not self:GetProperty("Visible") then return false end
-
-    self:Draw()
-
-
-	local zIndices = {}
+function module:_drawChildren()
+    local zIndices = {}
 	local layers = {}
 	for _, child in ipairs(self:GetChildren()) do
 		local zIndex = child.ZIndex or 0
@@ -287,6 +300,15 @@ function module:_draw()
 			child:_draw()
 		end
 	end
+end
+
+function module:_draw()
+    if not self:GetProperty("Visible") then return false end
+
+    self:Draw()
+
+	self:_drawChildren()
+    return true
 end
 
 function module:Update(dt)
@@ -335,6 +357,9 @@ function module:CopyProperties()
 end
 
 function module:Register()
+    if RegisteredClasses[self.__type] then
+        print(self.__type, "has already been registered")
+    end
     RegisteredClasses[self.__type] = self
 
     if not rawget(self, "new") then

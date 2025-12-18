@@ -116,6 +116,14 @@ function module:Apply()
 	-- end
 end
 
+module.Red = module.new(1,0,0,1)
+module.Green = module.new(0,1,0,1)
+module.Blue = module.new(0,0,1,1)
+
+module.Cyan = module.new(0,1,1,1)
+module.Magenta = module.new(1,0,1,1)
+module.Yellow = module.new(1,1,0,1)
+
 module.White = module.new(1,1,1,1)
 module.Blank = module.new(0,0,0,0)
 

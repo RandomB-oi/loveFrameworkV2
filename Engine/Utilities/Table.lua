@@ -37,6 +37,14 @@ module.shallowCopy = function(tbl)
 	return tbl
 end
 
+module.values = function(tbl)
+	local list = {}
+	for i,v in next, tbl do
+		table.insert(list, v)
+	end
+	return value
+end
+
 module.reverse = function(tbl)
 	local newTbl = {}
 	for i = #tbl, 1, -1 do

@@ -117,7 +117,6 @@ module.new = function(id, object, depth)
 
 	self.Button.LeftClicked:Connect(function()
 		task.spawn(function()
-			print(self.Object:GetFullName())
 			if InputService:IsKeyPressed(Enum.KeyCode.LeftControl) then
 				if Selection:IsSelected(self.Object) then
 					Selection:Remove(self.Object)

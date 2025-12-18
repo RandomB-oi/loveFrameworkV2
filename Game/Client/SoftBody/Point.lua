@@ -14,8 +14,8 @@ module:SetDefaultProperyValue("Size", UDim2.new(0,10,0,10))
 module:SetDefaultProperyValue("AnchorPoint", Vector.zero)
 
 local WallClass = require("Game.Client.SoftBody.Wall")
--- module.Gravity = Vector.yAxis*250
 module.Gravity = Vector.zero
+module.Gravity = Vector.yAxis*250
 
 local function Colliding(wall, point)
     local position, size = wall.RenderPosition, wall.RenderSize
@@ -53,6 +53,7 @@ function module:Update(dt)
             velocity = Vector.new(velocity.X, velocity.Y * -self:GetProperty("Elasticity"))
         end
     end
+    
     local newPosition = position + velocity * dt
     local newVelocity = velocity + module.Gravity * dt
 
@@ -65,6 +66,10 @@ function module:Draw()
     if backgroundColor.A > 0 then
         backgroundColor:Apply()
         love.graphics.circle("fill", self.RenderPosition.X, self.RenderPosition.Y, self.RenderSize.X/2)
+
+        Color.Red:Apply()
+        local velocity = self.RenderPosition + self:GetProperty("Velocity")
+        love.graphics.line(self.RenderPosition.X, self.RenderPosition.Y, velocity.X, velocity.Y)
     end
 end
 

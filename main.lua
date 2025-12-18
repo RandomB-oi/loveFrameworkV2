@@ -19,6 +19,7 @@ end
 
 local pDT = 0
 love.update = function(dt)
+    -- dt = 1/30
 	task.update(dt)
     RootObject:_update(dt)
     pDT = dt

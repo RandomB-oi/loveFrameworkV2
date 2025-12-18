@@ -1,22 +1,19 @@
 autoLoad("Game/Client/SoftBody")
 
 local InputService = Game:GetService("InputService")
+local RunService = Game:GetService("RunService")
 
 local Viewport = Object.Create("GUIContainer"):SetProperties({
     Parent = Game,
+})
+local SimContainer = Object.Create("SimulationSubStepContainer"):SetProperties({
+    Parent = Viewport,
+    DesiredFPS = 100,
 })
 
 local wallThickness = 100
 local hugeWallSize = 999999
 
-local stiffness = 50
-local damping = 4
-local pointMass = 25
-
-local elasticity = 0
-local pointCount = 12
-
-local radius = 100
 
 hugeWallSize = hugeWallSize + wallThickness
 Object.Create("Wall"):SetProperties({
@@ -45,36 +42,10 @@ Object.Create("Wall"):SetProperties({
 })
 
 
-local points = {}
 
-for i = 1, pointCount do
-    local a = (i / pointCount) * math.pi * 2
-    table.insert(points, Object.Create("Point"):SetProperties({
-        Position = UDim2.new(0.5, math.cos(a) * radius, 0.5, math.sin(a) * radius),
-        Mass = pointMass,
-        Elasticity = elasticity,
-        Parent = Viewport,
-    }))
-end
 
-task.delay(.2, function()
-    for i = 1, #points do
-        local pointA = points[i]
-        for k = i + 1, #points do
-            print(i, k)
-            local pointB = points[k]
-            
-            local spring = Object.Create("Spring"):SetProperties({
-                PointA = pointA,
-                PointB = pointB,
-                Parent = Viewport,
-                Stiffness = stiffness,
-                Damping = damping,
-                RestLength = (pointA.RenderPosition - pointB.RenderPosition):Length(),
-            })
-        end
-    end
-end)
+Object.Create("Shape", nil, UDim2.new(0.3, 0, 0.5, 0), 10, 100, 25, 0, 5, 1):SetProperty("Parent", Viewport)
+Object.Create("Shape", nil, UDim2.new(0.7, 0, 0.5, 0), 10, 100, 25, 0, 5, 1):SetProperty("Parent", Viewport)
 
 local mousePoint = Object.Create("Point"):SetProperties({
     Mass = math.huge,
@@ -84,14 +55,14 @@ local mouseSpring = Object.Create("Spring"):SetProperties({
     PointA = mousePoint,
     -- PointB = pointB,
     Parent = Viewport,
-    Stiffness = stiffness,
-    Damping = damping,
+    Stiffness = 100,
+    Damping = 2,
     RestLength = 0,
 })
 
 InputService.InputBegan:Connect(function(input)
     if input.KeyCode == Enum.KeyCode.R then
-        for i,v in next, points do
+        for i,v in next, Object.GetClass("Point").AllPoints do
             v.Velocity = Vector.zero
         end
     end
@@ -104,16 +75,19 @@ task.spawn(function()
         if InputService:IsMouseButtonPressed(Enum.MouseButton.MouseButton1) then
             if not mouseSpring.PointB then
                 local closest, closestDist
-                for i, v in next, points do
+                for i, v in next, Object.GetClass("Point").AllPoints do
                     local dist = (v.RenderPosition - pos):Length()
-                    if not closestDist or closestDist and dist < closestDist then
+                    if (not closestDist or closestDist and dist < closestDist) and v ~= mousePoint then
                         closest, closestDist = v, dist
                     end
                 end
+                print(closest)
                 mouseSpring.PointB = closest
+                print("set")
             end
         else
             mouseSpring.PointB = nil
+            print("remove")
         end
         task.wait()
     end

@@ -9,6 +9,7 @@ module.ClassProperties = module.__base:CopyProperties()
 module:CreateProperty("PointA", "Object", nil)
 module:CreateProperty("PointB", "Object", nil)
 module:CreateProperty("Stiffness", "number", 5)
+module:CreateProperty("MaxForce", "number", 2000)
 module:CreateProperty("RestLength", "number", 100)
 module:CreateProperty("Damping", "number", 10)
 module:SetDefaultProperyValue("Name", module.__type)
@@ -18,8 +19,13 @@ module.new = function(...)
     return self
 end
 
-local function AddVelocity(point, vel)
-    point:SetProperty("Velocity", point:GetProperty("Velocity") + vel)
+local function AddVelocity(point, vel, max)
+    local currentVel = point:GetProperty("Velocity")
+    local currentLen = currentVel:Length()
+    if currentLen > max then return end
+    vel = vel:Normalized() * math.min(vel:Length(), max)
+
+    point:SetProperty("Velocity", currentVel + vel)
 end
 
 function module:Update(dt)
@@ -46,17 +52,8 @@ function module:Update(dt)
     local force = direction * forceMagnitude
 
 
-    AddVelocity(a, -force / a:GetProperty("Mass"))
-    AddVelocity(b, force / b:GetProperty("Mass"))
-
-
-
-
-
-
-
-
-
+    AddVelocity(a, -force / a:GetProperty("Mass"), self:GetProperty("MaxForce"))
+    AddVelocity(b, force / b:GetProperty("Mass"), self:GetProperty("MaxForce"))
 
     -- local vel = dir * dist * self:GetProperty("Stiffness")/2
 
@@ -69,9 +66,36 @@ function module:Draw()
     if not (a and b) then return end
     
     local pa,pb = a.RenderPosition, b.RenderPosition
+    if true then
+        Color.Yellow:Apply()
+        love.graphics.line(pa.X, pa.Y, pb.X, pb.Y)
+        return
+    end
+    local normal = (pa-pb):Normalized()
+    normal = Vector.new(-normal.Y, normal.X)
+
+    local springPadding = .1
+    local width = 10
+    local coils = math.ceil(self:GetProperty("Stiffness")/5)
+
+    local points = {
+        pa,
+        -- pa:Lerp(pb, springPadding/2)
+    }
+    for i = 1, coils do
+        local alpha = ((i-1)/(coils-1))*(1-springPadding*2)+springPadding
+        local p = pa:Lerp(pb, alpha)
+        table.insert(points, p + normal * width * (i%2==1 and -1 or 1))
+    end
+    
+    -- table.insert(points, pb:Lerp(pa, springPadding/2))
+    table.insert(points, pb)
 
     Color.White:Apply()
-    love.graphics.line(pa.X, pa.Y, pb.X, pb.Y)
+    for i = 1, #points-1 do
+        local p1, p2 = points[i], points[i+1]
+        love.graphics.line(p1.X, p1.Y, p2.X, p2.Y)
+    end
 end
 
 return module:Register()

@@ -9,23 +9,15 @@ module.ClassProperties = module.__base:CopyProperties()
 module:CreateProperty("PointA", "Object", nil)
 module:CreateProperty("PointB", "Object", nil)
 module:CreateProperty("Stiffness", "number", 5)
-module:CreateProperty("MaxForce", "number", 2000)
+-- module:CreateProperty("MaxForce", "number", 2000)
 module:CreateProperty("RestLength", "number", 100)
 module:CreateProperty("Damping", "number", 10)
+module:CreateProperty("Coils", "number", 5)
 module:SetDefaultProperyValue("Name", module.__type)
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
     return self
-end
-
-local function AddVelocity(point, vel, max)
-    local currentVel = point:GetProperty("Velocity")
-    local currentLen = currentVel:Length()
-    if currentLen > max then return end
-    vel = vel:Normalized() * math.min(vel:Length(), max)
-
-    point:SetProperty("Velocity", currentVel + vel)
 end
 
 function module:Update(dt)
@@ -36,10 +28,8 @@ function module:Update(dt)
 
     local delta = b.RenderPosition - a.RenderPosition
     local distance = delta:Length()
-    if distance <= 0.001 then
-        distance = 0.01
-        delta = Vector.xAxis*distance
-    end
+    if distance < 0.0001 then return end
+
     local direction = delta/distance
 
     local relativeVelocity = b:GetProperty("Velocity") - a:GetProperty("Velocity")
@@ -51,14 +41,11 @@ function module:Update(dt)
     local forceMagnitude = springForce + dampingForce
     local force = direction * forceMagnitude
 
+    local accA = -force / a:GetProperty("Mass")
+    local accB = force / b:GetProperty("Mass")
 
-    AddVelocity(a, -force / a:GetProperty("Mass"), self:GetProperty("MaxForce"))
-    AddVelocity(b, force / b:GetProperty("Mass"), self:GetProperty("MaxForce"))
-
-    -- local vel = dir * dist * self:GetProperty("Stiffness")/2
-
-    -- AddVelocity(a, -vel)
-    -- AddVelocity(b, vel)
+    a:SetProperty("Velocity", a:GetProperty("Velocity") + accA * dt)
+    b:SetProperty("Velocity", b:GetProperty("Velocity") + accB * dt)
 end
 
 function module:Draw()
@@ -66,17 +53,18 @@ function module:Draw()
     if not (a and b) then return end
     
     local pa,pb = a.RenderPosition, b.RenderPosition
-    if true then
-        Color.Yellow:Apply()
-        love.graphics.line(pa.X, pa.Y, pb.X, pb.Y)
-        return
-    end
+    -- if true then
+    --     Color.Yellow:Apply()
+    --     love.graphics.line(pa.X, pa.Y, pb.X, pb.Y)
+    --     return
+    -- end
     local normal = (pa-pb):Normalized()
     normal = Vector.new(-normal.Y, normal.X)
 
     local springPadding = .1
     local width = 10
-    local coils = math.ceil(self:GetProperty("Stiffness")/5)
+    -- local coils = math.max(2,math.ceil(self:GetProperty("Stiffness")/20))
+    local coils = self:GetProperty("Coils")
 
     local points = {
         pa,

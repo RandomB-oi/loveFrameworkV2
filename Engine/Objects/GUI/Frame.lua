@@ -137,7 +137,7 @@ function module:UpdateRenderProperties(parentPos, parentSize)
 
     for _, child in ipairs(self:GetChildren()) do
         if child:IsA("Frame") then
-            child:UpdateRenderProperties(new)
+            child:UpdateRenderProperties(newPos, newSize)
         end
     end
 end

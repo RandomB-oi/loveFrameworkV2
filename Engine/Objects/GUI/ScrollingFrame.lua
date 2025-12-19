@@ -131,8 +131,8 @@ function module:Draw()
 		local scrollbarPosition = self:GetProperty("HorizontalScrollbarSide") == Enum.LateralDirection.Left and 0 or self.RenderSize.X - scrollbarThickness
 
 		love.graphics.rectangle("fill",
-			renderPosition.X + scrollbarPosition,
-			renderPosition.Y + (self.RenderSize.Y - scrollbarHeight) * scrollPercent,
+			self.RenderSize.X + scrollbarPosition,
+			self.RenderSize.Y + (self.RenderSize.Y - scrollbarHeight) * scrollPercent,
 			scrollbarThickness,
 			scrollbarHeight
 		)
@@ -143,8 +143,8 @@ function module:Draw()
 		local scrollbarPosition = self:GetProperty("VerticalScrollbarSide") == Enum.VerticalDirection.Top and 0 or self.RenderSize.Y - scrollbarThickness
 
 		love.graphics.rectangle("fill",
-			renderPosition.X + (self.RenderSize.X - scrollbarHeight) * scrollPercent,
-			renderPosition.Y + scrollbarPosition,
+			self.RenderSize.X + (self.RenderSize.X - scrollbarHeight) * scrollPercent,
+			self.RenderSize.Y + scrollbarPosition,
 				scrollbarHeight,
 				scrollbarThickness
 		)

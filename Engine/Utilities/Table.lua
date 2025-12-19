@@ -42,7 +42,7 @@ module.values = function(tbl)
 	for i,v in next, tbl do
 		table.insert(list, v)
 	end
-	return value
+	return list
 end
 
 module.reverse = function(tbl)

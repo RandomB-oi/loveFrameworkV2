@@ -317,7 +317,12 @@ function module:Draw()
 end
 
 function module:Destroy()
+    print("destroy")
     All[self.ID] = self
+    self:SetProperty("Parent", nil)
+    for _, v in self:GetChildren() do
+        v:Destroy()
+    end
     self.Maid:Destroy()
 end
 

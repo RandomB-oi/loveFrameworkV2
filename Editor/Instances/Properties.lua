@@ -91,7 +91,6 @@ function module:UpdateProperties()
 	end
 
 	local object = Selection:Get()[1]
-	print("update", object)
 	if not object then return end
 
 	for propName, info in pairs(object.ClassProperties) do

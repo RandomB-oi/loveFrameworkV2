@@ -4,7 +4,7 @@ love.load = function()
     love.window.setMode(800, 600, {resizable = true})
     RootObject = require("Engine.main")
     local Server -- check starting parameters
-    -- local EditorEnabled = true
+    local EditorEnabled -- = true
 
     if EditorEnabled then
         RootObject = require("Editor.main")

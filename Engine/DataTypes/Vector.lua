@@ -112,7 +112,7 @@ function module:ToLua()
 end
 
 function module:Serialize()
-    return self.X, self.X
+    return self.X, self.Y
 end
 
 module.zero = module.new(0,0)

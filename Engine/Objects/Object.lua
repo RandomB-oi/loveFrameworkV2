@@ -66,6 +66,8 @@ local TypeCleaners = {
 	end,
 }
 
+module.ObjectCreated = Signal.new()
+
 function module.GetClass(className)
     return RegisteredClasses[className]
 end
@@ -80,12 +82,21 @@ function module.Create(className, id, ...)
     return class.new(id, ...)
 end
 
+function module.GetAll()
+    return All
+end
+
+function module.GetByID(id)
+    return All[id]
+end
+
 module.new = function(id)
     local self = setmetatable({}, module)
     self.Maid = Maid.new()
     self.Changed = self.Maid:Add(Signal.new())
     self.ChildAdded = self.Maid:Add(Signal.new())
     self.ChildRemoved = self.Maid:Add(Signal.new())
+    self.Destroying = self.Maid:Add(Signal.new())
     
     self.ID = id or string.GenerateID()
 
@@ -125,6 +136,9 @@ function module:GetProperty(name)
 end
 
 function module:SetProperty(name, value)
+    if name == "Parent" and not All[self.ID] then
+        return warn("Cannot change parent of a destroyed object")
+    end
     local info = self.ClassProperties[name]
     if not info then return self end -- invalid property
     if not (PropertyTypeMatches(value, info.Type)) then return self end
@@ -160,6 +174,10 @@ function module:SetProperties(list)
         self:SetProperty("Parent", parent)
     end
     return self
+end
+
+function module:SetParent(value)
+    return self:SetProperty("Parent", value)
 end
 
 function module:GetPropertyChangedSignal(name)
@@ -317,14 +335,134 @@ function module:Draw()
 end
 
 function module:Destroy()
-    print("destroy")
-    All[self.ID] = self
+    if not All[self.ID] then return end
+    self.Destroying:Fire()
     self:SetProperty("Parent", nil)
-    for _, v in self:GetChildren() do
+    All[self.ID] = nil
+    for _, v in next, self:GetChildren() do
         v:Destroy()
     end
     self.Maid:Destroy()
 end
+
+-- Replication
+function module:CanReplicate()
+    local parent = self:GetProperty("Parent")
+    local replicates = self:GetProperty("Replicates")
+	if parent == Game then return replicates end
+	if not replicates then return false end
+
+	if parent then
+		return parent:CanReplicate()
+	end
+
+	return false
+end
+
+function module:Replicate(prop, specificClient)
+	local Run = Game:GetService("RunService")
+	local ServerService = Game:GetService("ServerService")
+
+	if not Run:IsServer() then return end
+
+	local didReplicate = self._replicated
+	local can = self:CanReplicate()
+	self._replicated = can
+
+	local message, data
+	if not can then
+		if didReplicate then
+			message, data = "RemoveInstance", {ID = self.ID}
+		end
+	else
+		if not prop or (not didReplicate and can) then
+			message, data = "CreateInstance", self:SerializeData()
+		else
+			message, data = "UpdateProperty", {
+				ID = self.ID,
+				Prop = prop,
+				Value = Serializer.Encode(self[prop]),
+			}
+		end
+	end
+
+	if message and data then
+		if specificClient then
+			ServerService:SendMessage(specificClient, message, data)
+		else
+			ServerService:SendMessageAll(message, data)
+		end
+	end
+end
+
+function module:SerializeData()
+	if not self.Replicates then return end
+	
+	local data = {}
+	data.ClassName = self.__type
+	data.ID = self.ID
+	data.Properties = {}
+	data.Tags = {}
+	data.Children = {}
+
+	for prop, value in pairs(self._properties) do
+		if value.Value ~= value.DefaultValue then
+			local can = true
+			
+			if value.PropType == "Instance" and value.Value and not value.Value:CanReplicate() then
+				can = false
+			end
+			
+			if can then
+				data.Properties[prop] = value.Value
+			end
+		end
+	end
+
+	-- for _, tag in pairs(self:GetTags()) do
+	-- 	table.insert(data.Tags, tag)
+	-- end
+
+	for _, child in ipairs(self:GetChildren()) do
+		local serializedData = child:SerializeData()
+		if serializedData then
+			table.insert(data.Children, serializedData)
+		end
+	end
+
+	if not next(data.Properties) then data.Properties = nil end
+	if not next(data.Tags) then data.Tags = nil end
+	if not next(data.Children) then data.Children = nil end
+	if not next(data) then data = nil end
+
+	return Serializer.Encode(data)
+end
+
+function module:DeserializeData(data)
+	if not data then return end
+	if data.Children then
+		local clientService = Game:GetService("ClientService")
+		for _, child in ipairs(data.Children) do
+			local object = clientService:GetInstance(child.ID, child.ClassName)
+			object:DeserializeData(child)
+		end
+	end
+	-- local parent
+	if data.Properties then
+        self:SetProperties(data.Properties)
+	end
+
+	if data.Tags then
+		for _, tag in pairs(data.Tags) do
+			-- self:AddTag(tag)
+		end
+	end
+end
+
+function module:Serialize()
+	return self.ID
+end
+
 
 -- call this on the class, not the instance
 function module:CreateProperty(name, propertyType, defaultValue, valueCleaner)

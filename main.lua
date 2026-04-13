@@ -1,47 +1,41 @@
-local RootObject
+_G._rootObject = nil
+
+local ogHandler = love.errhand
+love.errhand = function(message)
+    local file = io.open("debug_log.txt", "a")
+    if file then
+        file:write("\n"..os.date().."\n"..message.."\n")
+        file:close()
+    end
+    print(message)
+    os.execute("pause")
+    ogHandler(message)
+end
 
 love.load = function()
     love.window.setMode(800, 600, {resizable = true})
-    RootObject = require("Engine.main")
-    local Server -- check starting parameters
-    local EditorEnabled -- = true
+    _G._rootObject = require("Engine.main")
 
-    if EditorEnabled then
-        RootObject = require("Editor.main")
+	_G.LaunchParameters = _G.LaunchParameters or {}
+	local RunService = Game:GetService("RunService")
+
+	if _G.LaunchParameters.editor then
+		RunService._editor = true
+	end
+
+	if _G.LaunchParameters.server then
+		RunService._editor = false
+		RunService._isServer = true
+	end
+
+    if RunService:IsEditor() then
+        _G._rootObject = require("Editor.main")
     end
 
-    if Server then
+    if RunService:IsServer() then
         require("Server")
     else
         require("Client")
     end
 end
 
-local pDT = 0
-love.update = function(dt)
-    -- dt = 1/30
-	task.update(dt)
-    RootObject:_update(dt)
-    pDT = dt
-end
-
-
-
-love.draw = function()
-    RootObject:_draw()
-
-
-    local goodFPS = Color.new(0, 1, 0, 1)
-    local okFPS = Color.new(1, 1, 0, 1)
-    local stinkyFPS = Color.new(1, 0, 0, 1)
-	local fps = math.round(1/pDT)
-    if fps < 15 then
-        stinkyFPS:Apply()
-    elseif fps < 30 then
-        okFPS:Apply()
-    else
-        goodFPS:Apply()
-    end
-    
-	love.graphics.drawCustomText(tostring(fps), 12,30,1)
-end

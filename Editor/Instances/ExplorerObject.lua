@@ -124,7 +124,8 @@ module.new = function(id, object, depth)
 					Selection:Add(self.Object)
 				end
 			else
-				if #Selection:Get() == 1 and select(2, next(Selection.Selection)) == self.Object then
+				local selected = Selection:Get()
+				if selected[1] == self.Object and selected[2] == nil then
 					Selection:Set()
 				else
 					Selection:Set({self.Object})

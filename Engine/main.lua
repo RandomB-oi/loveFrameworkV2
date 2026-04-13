@@ -22,9 +22,9 @@ table = require("Engine.Utilities.Table")
 string = require("Engine.Utilities.String")
 task = require("Engine.Utilities.Task")
 json = require("Engine.Utilities.json")
--- if not _G.LaunchParameters.noGraphics then
+if love.graphics then
 	require("Engine.Utilities.Graphics")
--- end
+end
 
 do -- DataTypes
 	Binary = require("Engine.DataTypes.Binary")
@@ -45,6 +45,7 @@ do -- DataTypes
 
 	TweenInfo = require("Engine.DataTypes.TweenInfo")
 end
+Serializer = require("Engine.Utilities.Serializer")
 
 do -- load all instances
 	function loadPath(path, list)

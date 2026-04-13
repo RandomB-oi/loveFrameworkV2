@@ -24,8 +24,9 @@ module.new = function(...)
     self:GetPropertyChangedSignal("Parent"):Connect(function(newParent)
         self.Maid.FPM = nil
 
+        self._updateRender = true
         if newParent then
-            newParent._updateRender = nil
+            newParent._updateRender = true
 
             -- local parentMaid = Maid.new()
             -- self.Maid.FPM = parentMaid
@@ -171,7 +172,17 @@ function module:Draw()
     local backgroundColor = self:GetProperty("BackgroundColor")
     if backgroundColor.A > 0 then
         backgroundColor:Apply()
+        local setShader, prevShader
+        if self.Shader then
+            setShader, prevShader = true, love.graphics.getShader()
+            self.Shader.Update(self.Shader.Shader)
+            love.graphics.setShader(self.Shader.Shader)
+        end
         love.graphics.rectangle("fill", self.RenderPosition.X, self.RenderPosition.Y, self.RenderSize.X, self.RenderSize.Y)
+        
+        if setShader then
+            love.graphics.setShader(prevShader)
+        end
     end
 end
 

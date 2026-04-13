@@ -14,12 +14,13 @@ module.new = function()
 end
 
 function module:GetService(name)
-    if self.Services[name] then
+    if self.Services[name] ~= nil then
         return self.Services[name]
     end
     local class = Object.GetClass(name)
     if not (class and class:IsA("Service")) then return end
 
+    self.Services[name] = false
     self.Services[name] = Object.Create(name, name)
     return self.Services[name]
 end

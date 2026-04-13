@@ -14,7 +14,6 @@ module.new = function(...)
 	local self = setmetatable(module.__base.new(...), module)
 
 	self:GetPropertyChangedSignal("Image"):Connect(function(newImage)
-		-- if _G.LaunchParameters.noGraphics then return end
 		if newImage then
 			self._imageObject = love.graphics.newImage(newImage) -- i overwrote this with a cached function
 		end
@@ -33,7 +32,18 @@ function module:Draw()
 	color:Apply()
 
 	if self._imageObject then
+        local setShader, prevShader
+        if self.ImageShader then
+            setShader, prevShader = true, love.graphics.getShader()
+            self.ImageShader.Update(self.ImageShader.Shader)
+            love.graphics.setShader(self.ImageShader.Shader)
+        end
+
 		love.graphics.cleanDrawImage(self._imageObject, self.RenderPosition, self.RenderSize)
+		
+        if setShader then
+            love.graphics.setShader(prevShader)
+        end
 	end
 end
 

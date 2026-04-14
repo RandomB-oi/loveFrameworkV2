@@ -1,6 +1,7 @@
 require("LoaderConfig")
-require(GamePath.."Shared.main")
-require(GamePath.."Client.main")
+
+task.spawn(require, GamePath.."Shared.main")
+task.spawn(require, GamePath.."Client.main")
 
 local RunService = Game:GetService("RunService")
 _G._rootObject = _G._rootObject or Game

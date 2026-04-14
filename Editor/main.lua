@@ -197,32 +197,32 @@ local function CreateDropdown(options, selected)
 end
 
 function EditorScreen:CreateContextMenu(object)
-	local dropdown = CreateDropdown({"Insert", "Export", "Duplicate", "Delete"}, function(value)
-		if value == "Insert" then
-			local classList = {}
-			for className in pairs(Instance.Classes) do
-				table.insert(classList, className)
-			end
+	-- local dropdown = CreateDropdown({"Insert", "Export", "Duplicate", "Delete"}, function(value)
+	-- 	if value == "Insert" then
+	-- 		local classList = {}
+	-- 		for className in pairs(Instance.Classes) do
+	-- 			table.insert(classList, className)
+	-- 		end
 
-			CreateDropdown(classList, function(className)
-				Object.Create(className).Parent = object
-				return true
-			end)
-			return true
-		elseif value == "Export" then
-			local pathName = object:GetFullName():gsub("%.", "_")
-			Instance.CreatePrefab(object, "ExportedInstances/"..pathName..".lua")
-			return true
-		elseif value == "Duplicate" then
-			local new = object:Clone(true)
-			new.Name = new.Name
-			new.Parent = object.Parent
-			return true
-		elseif value == "Delete" then
-			object:Destroy()
-			return true
-		end
-	end)
+	-- 		CreateDropdown(classList, function(className)
+	-- 			Object.Create(className).Parent = object
+	-- 			return true
+	-- 		end)
+	-- 		return true
+	-- 	elseif value == "Export" then
+	-- 		local pathName = object:GetFullName():gsub("%.", "_")
+	-- 		Instance.CreatePrefab(object, "ExportedInstances/"..pathName..".lua")
+	-- 		return true
+	-- 	elseif value == "Duplicate" then
+	-- 		local new = object:Clone(true)
+	-- 		new.Name = new.Name
+	-- 		new.Parent = object.Parent
+	-- 		return true
+	-- 	elseif value == "Delete" then
+	-- 		object:Destroy()
+	-- 		return true
+	-- 	end
+	-- end)
 end
 
 Game:SetProperty("Parent", ViewportHolder)

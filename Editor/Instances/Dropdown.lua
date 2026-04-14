@@ -59,4 +59,4 @@ module.new = function(list)
 end
 
 
-return Instance.RegisterClass(module)
+return module:Register()

@@ -19,8 +19,8 @@ RunService._isServer = true
 
 _G._rootObject = _G._rootObject or Game
 require("LoaderConfig")
-require(GamePath.."Shared.main")
-require(GamePath.."Server.main")
+task.spawn(require, GamePath.."Shared.main")
+task.spawn(require, GamePath.."Server.main")
 
 ServerService:StartServer(6767)
 
@@ -51,7 +51,7 @@ if _G.LaunchParameters.sepThread then -- running on separate thread
 			socket.sleep(tickRate)
 		end
 	end
-
+	ServerService:DisconnectAll()
 	print("Close server")
 else
 	love.update = Update

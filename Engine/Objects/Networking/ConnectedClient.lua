@@ -3,7 +3,7 @@ module.__index = module
 
 local NextClientID = 0
 
-local function GetID()
+local function GetID() -- count downwards so it doesnt conflict with the entity ids
     NextClientID = NextClientID + 1
 	return tostring(-NextClientID)
 end
@@ -15,9 +15,11 @@ module.new = function(peer)
 	self.Maid = Maid.new()
 	self.Peer = peer
 	self.ID = GetID()
-	self.Instance = self.Maid:Add(Object.Create(ServerService.PlayerClass, self.ID))
-	self.Instance.Name = self.ID
-	self.Instance.Parent = Game:GetService("Players")
+	self.Instance = self.Maid:Add(Object.Create("Player", self.ID))
+	self.Instance:SetProperties({
+		Name = self.ID,
+		Parent = Game:GetService("Players"),
+	})
 
 	self.PendingMessages = {}
 
@@ -26,28 +28,32 @@ end
 
 function module:SendMessage(message, data)
 	-- make this update old messages instead of adding tons
+	local updated = false
 	if message == "UpdateProperty" then
 		for i = #self.PendingMessages, 1, -1 do
 			local pendingMessage = self.PendingMessages[i]
 			if pendingMessage.name == message and pendingMessage.data.ID == data.ID and pendingMessage.data.Prop == data.Prop then
 				pendingMessage.data.Value = data.Value
-				return
+				updated = true
+				break
 			end
 		end
 	end
-	table.insert(self.PendingMessages, {
-		name = message,
-		data = data
-	})
+	if not updated then
+		table.insert(self.PendingMessages, {
+			name = message,
+			data = data
+		})
+	end
 
-	-- local encodingService = Engine:GetService("EncodingService")
-	-- local success, data = encodingService:Encode({
-	-- 	name = message,
-	-- 	data = data,
-	-- }, encodingService.ReplicationEncodingMethod)
-	-- if success then
-	-- 	self.Peer:send(data)
-	-- end
+	local encodingService = Game:GetService("EncodingService")
+	local success, data = encodingService:Encode({
+		name = message,
+		data = data,
+	})
+	if success then
+		self.Peer:send(data)
+	end
 end
 
 function module:BatchSend()
@@ -63,7 +69,7 @@ function module:BatchSend()
 	local success, data = encodingService:Encode({
 		name = name,
 		data = value,
-	}, encodingService.ReplicationEncodingMethod)
+	})
 	if success then
 		self.PendingMessages = {}
 		self.Peer:send(data)

@@ -24,6 +24,10 @@ module.new = function(id, object, depth)
 	self.Object = object
 	self.Depth = depth or 0
 	
+	self.Maid:GiveTask(self.Object.Destroying:Connect(function()
+		self:Destroy()
+	end))
+
 	self.Button = self.Maid:Add(Object.Create("Button")):SetProperties({
 		Size = UDim2.new(1, -CellHeight, 0, CellHeight),
 		BackgroundColor = Color.Blank,
@@ -99,6 +103,7 @@ module.new = function(id, object, depth)
 	end))
 
 	self.Maid:GiveTask(self.Object.ChildAdded:Connect(function(newChild)
+		task.wait()
 		self:NewChild(newChild)
 	end))
 
@@ -135,7 +140,7 @@ module.new = function(id, object, depth)
 	end)
 
 	self.Button.RightClicked:Connect(function()
-		EditorScreen:CreateContextMenu(self.Object)
+		-- EditorScreen:CreateContextMenu(self.Object)
 	end)
 	
 	for _, child in ipairs(self.Object:GetChildren()) do

@@ -25,4 +25,12 @@ function module:GetService(name)
     return self.Services[name]
 end
 
+function module:GetServices()
+	local loadedServicesArray = {}
+	for name, service in pairs(self.Services) do
+		table.insert(loadedServicesArray, service)
+	end
+	return loadedServicesArray
+end
+
 return module:Register()

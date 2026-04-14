@@ -36,6 +36,7 @@ function module:GetTransform()
 end
 
 function module:UpdateSize()
+    if not love.graphics then return end
     local newSize, newPos = self:GetTransform()
 
     local prevSize = self.RenderSize

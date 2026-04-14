@@ -1,4 +1,2 @@
-GamePath = "FNAFGame"
-
-GamePath = GamePath.."."
-GameDirectory = GamePath.."/"
+GamePath = "Games.NetworkingTest."
+GameDirectory = "Games/NetworkingTest/"

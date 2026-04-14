@@ -79,7 +79,9 @@ function module.Create(className, id, ...)
 
     local class = RegisteredClasses[className]
     if not class then print(className) end
-    return class.new(id, ...)
+    local created = class.new(id, ...)
+    module.ObjectCreated:Fire(created.ID, created)
+    return created
 end
 
 function module.GetAll()
@@ -134,6 +136,13 @@ function module:GetProperty(name)
     end
     return self.ClassProperties[name] and self.ClassProperties[name].Value
 end
+function module:GetProperties() -- the modified properties (most the time) (unreliable)
+    local list = {}
+    for name, info in pairs(self.ClassProperties) do
+        list[name] = self[name]
+    end
+    return list
+end
 
 function module:SetProperty(name, value)
     if name == "Parent" and not All[self.ID] then
@@ -141,6 +150,7 @@ function module:SetProperty(name, value)
     end
     local info = self.ClassProperties[name]
     if not info then return self end -- invalid property
+    if info.Type == "Object" and type(value) == "string" then value = module.GetByID(value) end
     if not (PropertyTypeMatches(value, info.Type)) then return self end
 
     if info.Cleaner then
@@ -250,6 +260,19 @@ function module:FindChild(name, recursive)
     end
 end
 
+function module:WaitForChild(name, timeout)
+    local begin = os.clock()
+    timeout = timeout or math.huge
+
+    while os.clock() - begin < timeout do
+        local found = self:FindChild(name)
+        if found then
+            return found
+        end
+        task.wait()
+    end
+end
+
 function module:GetConstraint(constraintType)
 	local constraintChildren = rawget(self, "_cC")
 	if not constraintChildren then return end
@@ -336,6 +359,7 @@ end
 
 function module:Destroy()
     if not All[self.ID] then return end
+
     self.Destroying:Fire()
     self:SetProperty("Parent", nil)
     All[self.ID] = nil
@@ -349,7 +373,7 @@ end
 function module:CanReplicate()
     local parent = self:GetProperty("Parent")
     local replicates = self:GetProperty("Replicates")
-	if parent == Game then return replicates end
+	if parent and parent:IsA("DataModel") then return replicates end
 	if not replicates then return false end
 
 	if parent then
@@ -381,12 +405,15 @@ function module:Replicate(prop, specificClient)
 			message, data = "UpdateProperty", {
 				ID = self.ID,
 				Prop = prop,
-				Value = Serializer.Encode(self[prop]),
+				Value = Serializer.Encode(self:GetProperty(prop)),
 			}
 		end
 	end
 
 	if message and data then
+        -- print("---------------")
+        -- print(message, specificClient)
+        -- printTable(data)
 		if specificClient then
 			ServerService:SendMessage(specificClient, message, data)
 		else
@@ -396,7 +423,7 @@ function module:Replicate(prop, specificClient)
 end
 
 function module:SerializeData()
-	if not self.Replicates then return end
+	if not self:GetProperty("Replicates") then return end
 	
 	local data = {}
 	data.ClassName = self.__type
@@ -405,18 +432,22 @@ function module:SerializeData()
 	data.Tags = {}
 	data.Children = {}
 
-	for prop, value in pairs(self._properties) do
-		if value.Value ~= value.DefaultValue then
-			local can = true
-			
-			if value.PropType == "Instance" and value.Value and not value.Value:CanReplicate() then
-				can = false
-			end
-			
-			if can then
-				data.Properties[prop] = value.Value
-			end
-		end
+	for prop, value in pairs(self:GetProperties()) do
+        local propInfo = self.ClassProperties[prop]
+
+        local can = true
+        
+        if propInfo.Type == "Object" and value then
+            if not value:CanReplicate() then
+                can = false
+            else
+                value = value.ID
+            end
+        end
+        
+        if can then
+            data.Properties[prop] = value
+        end
 	end
 
 	-- for _, tag in pairs(self:GetTags()) do
@@ -518,6 +549,7 @@ end
 module:CreateProperty("Name", "string", module.__type)
 module:CreateProperty("Simulated", "boolean", true)
 module:CreateProperty("Visible", "boolean", true)
+module:CreateProperty("Replicates", "boolean", true)
 module:CreateProperty("ZIndex", "number", 1)
 module:CreateProperty("Parent", "Object", nil)
 

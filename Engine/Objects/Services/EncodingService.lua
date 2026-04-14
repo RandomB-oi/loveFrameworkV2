@@ -30,12 +30,14 @@ local EncodingMethods = {
 }
 
 function module:Encode(data, format)
+	format = format or self:GetProperty("ReplicationEncodingMethod")
 	if not EncodingMethods[format] then return false end
 
 	return true, EncodingMethods[format].Encode(data)
 end
 
 function module:Decode(data, format)
+	format = format or self:GetProperty("ReplicationEncodingMethod")
 	if not EncodingMethods[format] then return false end
 
 	return true, EncodingMethods[format].Decode(data)

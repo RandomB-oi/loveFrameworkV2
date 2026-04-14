@@ -16,6 +16,20 @@ typeof = function(value)
 	return t
 end
 
+printTable = function(value, tabs)
+    tabs = tabs or 0
+    local tabString = string.rep("\t", tabs)
+    for i, v in next, value do
+        if type(v) == "table" then
+            print(tabString, i," = {")
+            printTable(v, tabs + 1)
+            print(tabString, "}")
+        else
+            print(tabString, i, v)
+        end
+    end
+end
+
 Enum = require("Engine.DataTypes.Enum")
 math = require("Engine.Utilities.Math")
 table = require("Engine.Utilities.Table")
@@ -105,4 +119,5 @@ end
 Object = require("Engine.Objects.Object")
 autoLoad("Engine/Objects")
 Game = Object.Create("DataModel","DataModel")
+workspace = Game:GetService("Workspace")
 return Game

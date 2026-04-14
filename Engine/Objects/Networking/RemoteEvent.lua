@@ -15,6 +15,7 @@ module.new = function(...)
 end
 
 function module:_addEvent(data)
+	data = Serializer.Decode(data)
 	if type(self) == "string" then
 		local connection connection = Object.ObjectCreated:Connect(function(id, object)
 			if id == self then
@@ -28,7 +29,7 @@ function module:_addEvent(data)
 	end
 	if not next(self.Event) then
 		task.spawn(function()
-			repeat task.wait(1/60) if not self.Parent then return end until next(self.Event)
+			repeat task.wait() if not self:GetProperty("Parent") then return end until next(self.Event)
 			self.Event:Fire(unpack(data))
 		end)
 		return
@@ -44,7 +45,7 @@ function module:FireClient(clientID, ...)
 	
 	serverService:SendMessage(clientID, "RemoteEvent", {
 		ID = self.ID,
-		Data = {...},
+		Data = Serializer.Encode({...}),
 	})
 end
 
@@ -55,7 +56,7 @@ function module:FireAllClients(...)
 
 	serverService:SendMessageAll("RemoteEvent", {
 		ID = self.ID,
-		Data = {...},
+		Data = Serializer.Encode({...}),
 	})
 end
 
@@ -66,7 +67,7 @@ function module:FireServer(...)
 
 	clientService:SendMessage("RemoteEvent", {
 		ID = self.ID,
-		Data = {...},
+		Data = Serializer.Encode({...}),
 	})
 end
 

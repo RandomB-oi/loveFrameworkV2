@@ -6,8 +6,7 @@ setmetatable(module, module.__base)
 
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
-module:CreateProperty("PlayerClass", "string", "Folder")
-module:CreateProperty("PlayerObjectParent", "Object", nil)
+module:SetDefaultProperyValue("Simulated", true)
 
 local enet = require("enet")
 local ConnectedClient = require("Engine.Objects.Networking.ConnectedClient")
@@ -29,7 +28,10 @@ local function AddClient(self, peer)
     local clientID = newClient.ID
     self.Clients[clientID] = newClient
 
+    print("new Client", clientID)
+
     newClient.Maid:GiveTask(function()
+        print("remove client")
         self.Clients[clientID] = nil
         local exitCode = newClient.DisconnectCode or 0
 
@@ -55,12 +57,12 @@ module.new = function(...)
     self.MessageRecieved = self.Maid:Add(Signal.new())
 
     -- finish this
-    -- self.ClientConnected:Connect(function(clientID)
-    --     GameScene:Replicate(nil, clientID)
-    --     for _, service in ipairs(Game:GetServices()) do
-    --         service:Replicate(nil, clientID)
-    --     end
-    -- end)
+    self.ClientConnected:Connect(function(clientID)
+        -- Game:Replicate(nil, clientID)
+        for _, service in ipairs(Game:GetServices()) do
+            service:Replicate(nil, clientID)
+        end
+    end)
 
     -- self.MessageRecieved:Connect(print)
     self.MessageRecieved:Connect(function(clientID, message, data)
@@ -119,16 +121,22 @@ function module:DisconnectClient(clientID, code)
     client:Destroy()
 end
 
+function module:DisconnectAll(code)
+    for id, client in next, self.Clients do
+        self:DisconnectClient(id, code)
+    end
+end
+
 function module:Update()
     if not Game:GetService("RunService"):IsServer() then return end
-    if not self.Enabled then return end
     if not self.Host then return end
 
     local encodingService = Game:GetService("EncodingService")
 
     if os.clock() - lastMessageSend > MessageRate then
         lastMessageSend = os.clock()
-        for _, client in pairs(self.Clients) do
+        for clientID, client in pairs(self.Clients) do
+            self:SendMessage(clientID, "Ping")
             client:BatchSend()
         end
     end
@@ -138,10 +146,10 @@ function module:Update()
         if event.type == "connect" then
             AddClient(self, event.peer)
         elseif event.type == "receive" then
-            local success, data = encodingService:Decode(event.data, encodingService.ReplicationEncodingMethod)
+            local success, data = encodingService:Decode(event.data)
             if success and data then
                 local clientID = GetClientIDFromPeer(self, event.peer)
-                if clientID then    
+                if clientID then 
                     self.MessageRecieved:Fire(clientID, data.name, data.data)
                 end
             end

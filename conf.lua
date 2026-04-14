@@ -1,7 +1,7 @@
 function love.conf(t)
     local raw = arg or {}
 	-- table.insert(raw, "--server")
-	-- table.insert(raw, "--editor")
+	table.insert(raw, "--editor")
 	-- table.insert(raw, "--debug")
 
 	local parameters = {}

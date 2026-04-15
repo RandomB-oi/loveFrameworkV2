@@ -7,6 +7,7 @@ setmetatable(module, module.__base)
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
+module:SetDefaultProperyValue("Visible", false)
 module:CreateProperty("ServerIP", "string", "")
 module:CreateProperty("ServerPort", "string", "")
 module:CreateProperty("LocalID", "string", "")
@@ -170,6 +171,7 @@ function module:CheckTimeout()
 end
 
 function module:Update()
+    if not self:GetProperty("Simulated") then return end
     if not Game:GetService("RunService"):IsClient() then return end
     if not (self.ServerPeer and self.Host) then return end
     local encodingService = Game:GetService("EncodingService")

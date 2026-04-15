@@ -157,6 +157,8 @@ end)
 	EditorFrame.BannerButtons.Pause:SetProperty("Visible", false)
 	EditorFrame.BannerButtons.Unpause:SetProperty("Visible", true)
 
+	ViewportHolder:SetProperty("Simulated", false)
+
 	EditorFrame.BannerButtons.Pause.LeftClicked:Connect(function()
 		ViewportHolder:SetProperty("Simulated", false)
 		

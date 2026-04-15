@@ -7,6 +7,7 @@ setmetatable(module, module.__base)
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
+module:SetDefaultProperyValue("Visible", false)
 
 local enet = require("enet")
 local ConnectedClient = require("Engine.Objects.Networking.ConnectedClient")
@@ -73,7 +74,10 @@ module.new = function(...)
         elseif message == "RemoteEvent" then
             local remote = Object.GetByID(data.ID)
             if remote then
-                remote:_addEvent({clientID, unpack(data.Data)})
+                local player = self:GetPlayerObject(clientID)
+                if player then
+                    remote:_addEvent({player, unpack(data.Data)})
+                end
             end
         end
     end)
@@ -128,6 +132,7 @@ function module:DisconnectAll(code)
 end
 
 function module:Update()
+    if not self:GetProperty("Simulated") then return end
     if not Game:GetService("RunService"):IsServer() then return end
     if not self.Host then return end
 

@@ -10,6 +10,7 @@ end
 
 module.new = function(peer)
 	local ServerService = Game:GetService("ServerService")
+	local PlayerService = Game:GetService("Players")
 
     local self = setmetatable({}, module)
 	self.Maid = Maid.new()
@@ -18,10 +19,15 @@ module.new = function(peer)
 	self.Instance = self.Maid:Add(Object.Create("Player", self.ID))
 	self.Instance:SetProperties({
 		Name = self.ID,
-		Parent = Game:GetService("Players"),
+		Parent = PlayerService,
 	})
 
 	self.PendingMessages = {}
+
+	PlayerService.PlayerAdded:Fire(self.Instance)
+	self.Maid:GiveTask(function()
+		PlayerService.PlayerRemoved:Fire(self.Instance)
+	end)
 
 	return self
 end

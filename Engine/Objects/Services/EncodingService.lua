@@ -7,7 +7,7 @@ setmetatable(module, module.__base)
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
-module:SetDefaultProperyValue("Visible", true)
+module:SetDefaultProperyValue("Visible", false)
 
 module:CreateProperty("ReplicationEncodingMethod", "EncodingMethod", Enum.EncodingMethod.Json)
 

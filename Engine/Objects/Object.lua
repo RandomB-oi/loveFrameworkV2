@@ -225,6 +225,30 @@ function module:IsA(checkType)
     return false
 end
 
+function module:Clone()
+    local instanceRefs = {}
+    local allChildren = self:GetChildren(true)
+
+    instanceRefs[self] = module.Create(self.__type)
+    for _, child in next, allChildren do
+        instanceRefs[child] = module.Create(child.__type)
+    end
+
+    for prop, value in next, self:GetProperties() do
+        if prop ~= "Parent" then
+            instanceRefs[self]:SetProperty(prop, instanceRefs[value] or value)
+        end
+    end
+    for _, child in next, allChildren do
+        local newChild = instanceRefs[child]
+        for prop, value in next, child:GetProperties() do
+            newChild:SetProperty(prop, instanceRefs[value] or value)
+        end
+    end
+
+    return instanceRefs[self]
+end
+
 -- hierarchal stuff
 function module:GetChildren(recursive)
     local list = {}
@@ -435,9 +459,10 @@ function module:SerializeData()
 	for prop, value in pairs(self:GetProperties()) do
         local propInfo = self.ClassProperties[prop]
 
-        local can = true
+        local can = propInfo.Replicates
+        if not can then print(prop, "doesnt replicate") end
         
-        if propInfo.Type == "Object" and value then
+        if can and propInfo.Type == "Object" and value then
             if not value:CanReplicate() then
                 can = false
             else
@@ -496,7 +521,7 @@ end
 
 
 -- call this on the class, not the instance
-function module:CreateProperty(name, propertyType, defaultValue, valueCleaner)
+function module:CreateProperty(name, propertyType, defaultValue, valueCleaner, dontReplicate)
     if self.ClassProperties[name] then
         print("property named "..name.." already exists for "..self.__type)
         return
@@ -506,6 +531,7 @@ function module:CreateProperty(name, propertyType, defaultValue, valueCleaner)
         Type = propertyType,
         Value = defaultValue,
         Cleaner = valueCleaner,
+        Replicates = not dontReplicate,
     }
 end
 
@@ -525,6 +551,7 @@ function module:CopyProperties()
             Type = info.Type,
             Value = info.Value,
             Cleaner = info.Cleaner,
+            Replicates = info.Replicates,
         }
     end
     return copy

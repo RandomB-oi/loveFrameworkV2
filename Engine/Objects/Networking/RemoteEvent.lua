@@ -38,12 +38,12 @@ function module:_addEvent(data)
 	self.Event:Fire(unpack(data))
 end
 
-function module:FireClient(clientID, ...)
+function module:FireClient(player, ...)
 	local runService = Game:GetService("RunService")
 	if not runService:IsServer() then return end
 	local serverService = Game:GetService("ServerService")
 	
-	serverService:SendMessage(clientID, "RemoteEvent", {
+	serverService:SendMessage(player:GetProperty("UserID"), "RemoteEvent", {
 		ID = self.ID,
 		Data = Serializer.Encode({...}),
 	})

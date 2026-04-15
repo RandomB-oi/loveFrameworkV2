@@ -1,5 +1,5 @@
 local function doTask(task)
-	local t = type(task)
+	local t = _type(task)
 	if t == "table" then
 		local f = (task.destroy or task.Destroy or task.disconnect or task.Disconnect or task.release or task.close)
 		if f then

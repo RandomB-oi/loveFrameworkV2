@@ -46,6 +46,7 @@ module.__type = "Object"
 module.ClassProperties = {}
 local All = {}
 local RegisteredClasses = {}
+module.ClassIcon = "Engine/Assets/InstanceIcons/Unknown.png"
 
 local function PropertyTypeMatches(value, desiredType)
 	if desiredType == "any" then return true end
@@ -65,6 +66,8 @@ local TypeCleaners = {
 	end,
 }
 
+module.ObjectCreated = Signal.new()
+
 function module.GetClass(className)
     return RegisteredClasses[className]
 end
@@ -75,7 +78,18 @@ function module.Create(className, id, ...)
     end
 
     local class = RegisteredClasses[className]
-    return class.new(id, ...)
+    if not class then print(className) end
+    local created = class.new(id, ...)
+    module.ObjectCreated:Fire(created.ID, created)
+    return created
+end
+
+function module.GetAll()
+    return All
+end
+
+function module.GetByID(id)
+    return All[id]
 end
 
 module.new = function(id)
@@ -84,6 +98,7 @@ module.new = function(id)
     self.Changed = self.Maid:Add(Signal.new())
     self.ChildAdded = self.Maid:Add(Signal.new())
     self.ChildRemoved = self.Maid:Add(Signal.new())
+    self.Destroying = self.Maid:Add(Signal.new())
     
     self.ID = id or string.GenerateID()
 
@@ -121,10 +136,21 @@ function module:GetProperty(name)
     end
     return self.ClassProperties[name] and self.ClassProperties[name].Value
 end
+function module:GetProperties() -- the modified properties (most the time) (unreliable)
+    local list = {}
+    for name, info in pairs(self.ClassProperties) do
+        list[name] = self[name]
+    end
+    return list
+end
 
 function module:SetProperty(name, value)
+    if name == "Parent" and not All[self.ID] then
+        return warn("Cannot change parent of a destroyed object")
+    end
     local info = self.ClassProperties[name]
     if not info then return self end -- invalid property
+    if info.Type == "Object" and type(value) == "string" then value = module.GetByID(value) end
     if not (PropertyTypeMatches(value, info.Type)) then return self end
 
     if info.Cleaner then
@@ -149,10 +175,19 @@ function module:SetProperty(name, value)
 end
 
 function module:SetProperties(list)
+    local parent = list.Parent
+    list.Parent = nil
     for prop, value in next, list do
         self:SetProperty(prop, value)
     end
+    if parent ~= nil then
+        self:SetProperty("Parent", parent)
+    end
     return self
+end
+
+function module:SetParent(value)
+    return self:SetProperty("Parent", value)
 end
 
 function module:GetPropertyChangedSignal(name)
@@ -190,6 +225,30 @@ function module:IsA(checkType)
     return false
 end
 
+function module:Clone()
+    local instanceRefs = {}
+    local allChildren = self:GetChildren(true)
+
+    instanceRefs[self] = module.Create(self.__type)
+    for _, child in next, allChildren do
+        instanceRefs[child] = module.Create(child.__type)
+    end
+
+    for prop, value in next, self:GetProperties() do
+        if prop ~= "Parent" then
+            instanceRefs[self]:SetProperty(prop, instanceRefs[value] or value)
+        end
+    end
+    for _, child in next, allChildren do
+        local newChild = instanceRefs[child]
+        for prop, value in next, child:GetProperties() do
+            newChild:SetProperty(prop, instanceRefs[value] or value)
+        end
+    end
+
+    return instanceRefs[self]
+end
+
 -- hierarchal stuff
 function module:GetChildren(recursive)
     local list = {}
@@ -225,6 +284,19 @@ function module:FindChild(name, recursive)
     end
 end
 
+function module:WaitForChild(name, timeout)
+    local begin = os.clock()
+    timeout = timeout or math.huge
+
+    while os.clock() - begin < timeout do
+        local found = self:FindChild(name)
+        if found then
+            return found
+        end
+        task.wait()
+    end
+end
+
 function module:GetConstraint(constraintType)
 	local constraintChildren = rawget(self, "_cC")
 	if not constraintChildren then return end
@@ -253,6 +325,16 @@ function module:IsVisible()
 	return true
 end
 
+function module:GetFullName()
+	local path = {}
+	local object = self
+	while object do
+		table.insert(path, object:GetProperty("Name"))
+		object = object:GetProperty("Parent")
+	end
+	return table.concat(table.reverse(path),".")
+end
+
 -- loops
 function module:_update(dt)
     if not self:GetProperty("Simulated") then return false end
@@ -262,15 +344,11 @@ function module:_update(dt)
     for _, child in ipairs(self:GetChildren()) do
         child:_update(dt)
     end
+    return true
 end
 
-function module:_draw()
-    if not self:GetProperty("Visible") then return false end
-
-    self:Draw()
-
-
-	local zIndices = {}
+function module:_drawChildren()
+    local zIndices = {}
 	local layers = {}
 	for _, child in ipairs(self:GetChildren()) do
 		local zIndex = child.ZIndex or 0
@@ -289,18 +367,161 @@ function module:_draw()
 	end
 end
 
+function module:_draw()
+    if not self:GetProperty("Visible") then return false end
+
+    self:Draw()
+
+	self:_drawChildren()
+    return true
+end
+
 function module:Update(dt)
 end
 function module:Draw()
 end
 
 function module:Destroy()
-    All[self.ID] = self
+    if not All[self.ID] then return end
+
+    self.Destroying:Fire()
+    self:SetProperty("Parent", nil)
+    All[self.ID] = nil
+    for _, v in next, self:GetChildren() do
+        v:Destroy()
+    end
     self.Maid:Destroy()
 end
 
+-- Replication
+function module:CanReplicate()
+    local parent = self:GetProperty("Parent")
+    local replicates = self:GetProperty("Replicates")
+	if parent and parent:IsA("DataModel") then return replicates end
+	if not replicates then return false end
+
+	if parent then
+		return parent:CanReplicate()
+	end
+
+	return false
+end
+
+function module:Replicate(prop, specificClient)
+	local Run = Game:GetService("RunService")
+	local ServerService = Game:GetService("ServerService")
+
+	if not Run:IsServer() then return end
+
+	local didReplicate = self._replicated
+	local can = self:CanReplicate()
+	self._replicated = can
+
+	local message, data
+	if not can then
+		if didReplicate then
+			message, data = "RemoveInstance", {ID = self.ID}
+		end
+	else
+		if not prop or (not didReplicate and can) then
+			message, data = "CreateInstance", self:SerializeData()
+		else
+			message, data = "UpdateProperty", {
+				ID = self.ID,
+				Prop = prop,
+				Value = Serializer.Encode(self:GetProperty(prop)),
+			}
+		end
+	end
+
+	if message and data then
+        -- print("---------------")
+        -- print(message, specificClient)
+        -- printTable(data)
+		if specificClient then
+			ServerService:SendMessage(specificClient, message, data)
+		else
+			ServerService:SendMessageAll(message, data)
+		end
+	end
+end
+
+function module:SerializeData()
+	if not self:GetProperty("Replicates") then return end
+	
+	local data = {}
+	data.ClassName = self.__type
+	data.ID = self.ID
+	data.Properties = {}
+	data.Tags = {}
+	data.Children = {}
+
+	for prop, value in pairs(self:GetProperties()) do
+        local propInfo = self.ClassProperties[prop]
+
+        local can = propInfo.Replicates
+        if not can then print(prop, "doesnt replicate") end
+        
+        if can and propInfo.Type == "Object" and value then
+            if not value:CanReplicate() then
+                can = false
+            else
+                value = value.ID
+            end
+        end
+        
+        if can then
+            data.Properties[prop] = value
+        end
+	end
+
+	-- for _, tag in pairs(self:GetTags()) do
+	-- 	table.insert(data.Tags, tag)
+	-- end
+
+	for _, child in ipairs(self:GetChildren()) do
+		local serializedData = child:SerializeData()
+		if serializedData then
+			table.insert(data.Children, serializedData)
+		end
+	end
+
+	if not next(data.Properties) then data.Properties = nil end
+	if not next(data.Tags) then data.Tags = nil end
+	if not next(data.Children) then data.Children = nil end
+	if not next(data) then data = nil end
+
+	return Serializer.Encode(data)
+end
+
+function module:DeserializeData(data)
+	if not data then return end
+	if data.Children then
+		local clientService = Game:GetService("ClientService")
+		for _, child in ipairs(data.Children) do
+			local object = clientService:GetInstance(child.ID, child.ClassName)
+			object:DeserializeData(child)
+		end
+	end
+	-- local parent
+	if data.Properties then
+        self:SetProperties(data.Properties)
+	end
+
+	if data.Tags then
+		for _, tag in pairs(data.Tags) do
+			-- self:AddTag(tag)
+		end
+	end
+end
+
+function module:Serialize()
+	return self.ID
+end
+
+
 -- call this on the class, not the instance
-function module:CreateProperty(name, propertyType, defaultValue, valueCleaner)
+function module:CreateProperty(name, propertyType, defaultValue, valueCleaner, dontReplicate)
     if self.ClassProperties[name] then
         print("property named "..name.." already exists for "..self.__type)
         return
@@ -310,6 +531,7 @@ function module:CreateProperty(name, propertyType, defaultValue, valueCleaner)
         Type = propertyType,
         Value = defaultValue,
         Cleaner = valueCleaner,
+        Replicates = not dontReplicate,
     }
 end
 
@@ -329,12 +551,16 @@ function module:CopyProperties()
             Type = info.Type,
             Value = info.Value,
             Cleaner = info.Cleaner,
+            Replicates = info.Replicates,
         }
     end
     return copy
 end
 
 function module:Register()
+    if RegisteredClasses[self.__type] then
+        print(self.__type, "has already been registered")
+    end
     RegisteredClasses[self.__type] = self
 
     if not rawget(self, "new") then
@@ -350,6 +576,7 @@ end
 module:CreateProperty("Name", "string", module.__type)
 module:CreateProperty("Simulated", "boolean", true)
 module:CreateProperty("Visible", "boolean", true)
+module:CreateProperty("Replicates", "boolean", true)
 module:CreateProperty("ZIndex", "number", 1)
 module:CreateProperty("Parent", "Object", nil)
 

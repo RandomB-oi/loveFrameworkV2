@@ -12,7 +12,7 @@ end
 
 local function GetTime()
     
-    -- local run = Engine:GetService("RunService")
+    -- local run = Game:GetService("RunService")
 	-- return run.ElapsedTime
     return os.clock()
 end

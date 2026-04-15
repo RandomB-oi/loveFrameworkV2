@@ -24,8 +24,15 @@ function module:Length()
 	return math.sqrt(self.X^2 + self.Y^2)
 end
 
+function module:Rotate(addAngle)
+	local angle = self:GetAngle()
+	local length = self:Length()
+
+	return module.FromAngle(angle + addAngle) * length
+end
+
 module.FromAngle = function(angle) -- in radians
-	return module.new(math.sin(angle), -math.cos(angle))
+	return module.new(math.cos(angle), -math.sin(angle))
 end
 
 function module:GetAngle()
@@ -105,7 +112,7 @@ function module:ToLua()
 end
 
 function module:Serialize()
-    return self.X, self.X
+    return self.X, self.Y
 end
 
 module.zero = module.new(0,0)

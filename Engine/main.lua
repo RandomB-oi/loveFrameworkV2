@@ -16,15 +16,29 @@ typeof = function(value)
 	return t
 end
 
+printTable = function(value, tabs)
+    tabs = tabs or 0
+    local tabString = string.rep("\t", tabs)
+    for i, v in next, value do
+        if type(v) == "table" then
+            print(tabString, i," = {")
+            printTable(v, tabs + 1)
+            print(tabString, "}")
+        else
+            print(tabString, i, v)
+        end
+    end
+end
+
 Enum = require("Engine.DataTypes.Enum")
 math = require("Engine.Utilities.Math")
 table = require("Engine.Utilities.Table")
 string = require("Engine.Utilities.String")
 task = require("Engine.Utilities.Task")
 json = require("Engine.Utilities.json")
--- if not _G.LaunchParameters.noGraphics then
+if love.graphics then
 	require("Engine.Utilities.Graphics")
--- end
+end
 
 do -- DataTypes
 	Binary = require("Engine.DataTypes.Binary")
@@ -45,6 +59,7 @@ do -- DataTypes
 
 	TweenInfo = require("Engine.DataTypes.TweenInfo")
 end
+Serializer = require("Engine.Utilities.Serializer")
 
 do -- load all instances
 	function loadPath(path, list)
@@ -104,3 +119,5 @@ end
 Object = require("Engine.Objects.Object")
 autoLoad("Engine/Objects")
 Game = Object.Create("DataModel","DataModel")
+workspace = Game:GetService("Workspace")
+return Game

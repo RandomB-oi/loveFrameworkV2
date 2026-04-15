@@ -21,8 +21,10 @@ function module:GetService(name)
     if not (class and class:IsA("Service")) then return end
 
     self.Services[name] = false
-    self.Services[name] = Object.Create(name, name)
-    return self.Services[name]
+    local newService = Object.Create(name, name)
+    newService:SetProperty("Parent", Game)
+    self.Services[name] = newService
+    return newService
 end
 
 function module:GetServices()

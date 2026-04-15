@@ -146,7 +146,7 @@ end
 
 function module:SetProperty(name, value)
     if name == "Parent" and not All[self.ID] then
-        return warn("Cannot change parent of a destroyed object")
+        return print("Cannot change parent of a destroyed object")
     end
     local info = self.ClassProperties[name]
     if not info then return self end -- invalid property
@@ -435,9 +435,6 @@ function module:Replicate(prop, specificClient)
 	end
 
 	if message and data then
-        -- print("---------------")
-        -- print(message, specificClient)
-        -- printTable(data)
 		if specificClient then
 			ServerService:SendMessage(specificClient, message, data)
 		else

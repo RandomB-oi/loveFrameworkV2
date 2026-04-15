@@ -6,6 +6,8 @@ task.spawn(require, GamePath.."Client.main")
 local RunService = Game:GetService("RunService")
 _G._rootObject = _G._rootObject or Game
 
+love.window.setMode(800, 600, {resizable = true})
+
 love.update = function(dt)
     -- dt = 1/30
     task.update(dt)

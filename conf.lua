@@ -1,7 +1,7 @@
 function love.conf(t)
     local raw = arg or {}
 	-- table.insert(raw, "--server")
-	table.insert(raw, "--editor")
+	-- table.insert(raw, "--editor")
 	-- table.insert(raw, "--debug")
 
 	local parameters = {}
@@ -21,7 +21,7 @@ function love.conf(t)
 		-- parameters.debug = true
 
 		t.console = true
-		t.window = false
+    	t.modules.window = false
 		t.modules.graphics = false
 		-- parameters.noGraphics = true
 	end

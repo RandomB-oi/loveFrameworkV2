@@ -17,7 +17,6 @@ module:SetDefaultProperyValue("Simulated", false)
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
-    self:SetProperty("Parent", Game)
     return self
 end
 

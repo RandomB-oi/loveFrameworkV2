@@ -24,7 +24,7 @@ module.new = function(...)
 
 	local InputService = Game:GetService("InputService")
 	self.Maid:Add(InputService.Scrolled:Connect(function(dir)
-		if not (self:MouseHovering() and self:IsEnabled()) then return end
+		if not (self:MouseHovering() and self:IsSimulated()) then return end
 		local horizontal = InputService:IsKeyPressed(Enum.KeyCode.LeftShift) or InputService:IsKeyPressed(Enum.KeyCode.RightShift)
 		local scrollAxis = horizontal and Vector.xAxis or Vector.yAxis
 		task.spawn(function()

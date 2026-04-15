@@ -96,6 +96,8 @@ function module:GetWindowRenderProperties()
 end
 
 function module:UpdateRenderProperties(parentPos, parentSize)
+    self._updateRender = nil
+
     local parent = self:GetProperty("Parent")
     if not parent then
         self.RenderPosition = Vector.zero
@@ -110,7 +112,6 @@ function module:UpdateRenderProperties(parentPos, parentSize)
         return self:UpdateRenderProperties(parent.RenderPosition, parent.RenderSize)
     end
 
-    self._updateRender = nil
     local prevPos, prevSize = self.RenderPosition, self.RenderSize
 
     local newPos, newSize

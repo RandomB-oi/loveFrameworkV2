@@ -61,8 +61,9 @@ function module:BindToParent(parent)
 	parent._updateRender = true
 end
 
-function module:Update(dt)
-	module.__base.Update(self, dt)
+
+function module:_update(dt)
+	if not module.__base._update(self, dt) then return false end
 
 	local parent = self:GetProperty("Parent")
 	if parent then
@@ -75,6 +76,12 @@ function module:Update(dt)
 	if self._updateOrder then
 		self:UpdateOrder()
 	end
+
+    return true
+end
+
+function module:Update(dt)
+	module.__base.Update(self, dt)
 end
 
 function module:UpdateOrder()

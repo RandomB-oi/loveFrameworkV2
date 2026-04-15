@@ -33,7 +33,6 @@ module.new = function(...)
 			Parent = self.ExplorerList,
 		})
 	end)
-	
 
 	self.Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function(size)
 		self.ExplorerList:SetProperty("CanvasSize", UDim2.fromOffset(size.X, size.Y))

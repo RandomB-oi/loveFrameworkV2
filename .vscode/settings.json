@@ -6,5 +6,6 @@
         "lowercase-global",
         "deprecated",
         "discard-returns"
-    ]
+    ],
+    "stylua.targetReleaseVersion": "latest"
 }

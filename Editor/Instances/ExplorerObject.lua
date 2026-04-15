@@ -103,7 +103,6 @@ module.new = function(id, object, depth)
 	end))
 
 	self.Maid:GiveTask(self.Object.ChildAdded:Connect(function(newChild)
-		task.wait()
 		self:NewChild(newChild)
 	end))
 
@@ -176,22 +175,19 @@ function module:CalculateDeepestDepth()
 end
 
 function module:UpdateScales()
-	task.delay(0, function()
-		local height = self.Layout:GetProperty("AbsoluteContentSize").Y
-		self.ChildrenList:SetProperty("Size", UDim2.new(1, 0, 0, height))
-		
-		if not self.ChildrenList:GetProperty("Visible") then
-			height = 0
-		end
-		
-		local deepestDepth = self:CalculateDeepestDepth()
-		self:SetProperty("Size", UDim2.new(1, (deepestDepth - self.Depth) * CellHeight, 0, CellHeight+height))
-	end)
+	local height = self.Layout:GetProperty("AbsoluteContentSize").Y
+	self.ChildrenList:SetProperty("Size", UDim2.new(1, 0, 0, height))
+	
+	if not self.ChildrenList:GetProperty("Visible") then
+		height = 0
+	end
+	
+	local deepestDepth = self:CalculateDeepestDepth()
+	self:SetProperty("Size", UDim2.new(1, (deepestDepth - self.Depth) * CellHeight, 0, CellHeight+height))
 end
 
 function module:Update(dt)
-	-- self:UpdateScales()
-
+	module.__base.Update(self, dt)
 	if self.Object._c and next(self.Object._c) then
 		self.ToggleButton:SetProperty("Visible", true)
 	else

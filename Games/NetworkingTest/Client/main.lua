@@ -4,8 +4,11 @@ local ClientService = Game:GetService("ClientService")
 require(GamePath.."Client.Multiplayer.main")
 
 ClientService.Connected:Connect(function()
-    local remote = workspace:WaitForChild("ServerScreen"):WaitForChild("ReplicationTest1"):WaitForChild("ChangeColor")
-    while task.wait(1/3) do
-        remote:FireServer(Color.new(math.random(), math.random(), math.random(), 1))
+    local remote = workspace:WaitForChild("MoveMouse")
+    local mainFrame = workspace:WaitForChild("MainRender"):WaitForChild("Holder"):WaitForChild("WorldRender")
+    print("Connected to server, starting to send mouse position")
+    while true do
+        remote:FireServer(InputService:GetMouseLocation() - mainFrame.RenderPosition)
+        task.wait()
     end
 end)

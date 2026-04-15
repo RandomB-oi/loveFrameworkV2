@@ -13,7 +13,6 @@ love.errhand = function(message)
 end
 
 love.load = function()
-    love.window.setMode(800, 600, {resizable = true})
     _G._rootObject = require("Engine.main")
 
 	_G.LaunchParameters = _G.LaunchParameters or {}

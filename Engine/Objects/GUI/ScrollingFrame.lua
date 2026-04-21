@@ -22,6 +22,27 @@ module.new = function(...)
 	self.Canvas = nil
 	self.RenderCanvasSize = Vector.zero
 
+
+    self:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+        self._updateRender = true
+		print("update it ")
+    end)
+    self:GetPropertyChangedSignal("CanvasSize"):Connect(function()
+        self._updateRender = true
+    end)
+    self:GetPropertyChangedSignal("ScrollbarThickness"):Connect(function()
+        self._updateRender = true
+    end)
+    self:GetPropertyChangedSignal("ScrollbarPadding"):Connect(function()
+        self._updateRender = true
+    end)
+    self:GetPropertyChangedSignal("HorizontalScrollbarSide"):Connect(function()
+        self._updateRender = true
+    end)
+    self:GetPropertyChangedSignal("VerticalScrollbarSide"):Connect(function()
+        self._updateRender = true
+    end)
+
 	local InputService = Game:GetService("InputService")
 	self.Maid:Add(InputService.Scrolled:Connect(function(dir)
 		if not (self:MouseHovering() and self:IsSimulated()) then return end
@@ -29,7 +50,7 @@ module.new = function(...)
 		local scrollAxis = horizontal and Vector.xAxis or Vector.yAxis
 		task.spawn(function()
 			for i = 1, 3 do
-				self:SetProperty("CanvasPosition", self:GetProperty("CanvasPosition") - scrollAxis*(dir*10))
+				self:SetProperty("CanvasPosition", self:GetClampedCanvasPosition(self:GetProperty("CanvasPosition") - scrollAxis*(dir*10)))
 				task.wait()
 			end
 		end)
@@ -63,7 +84,12 @@ function module:GetPadding()
 	return add, sub
 end
 
-function module:UpdateCanvas()
+function module:GetClampedCanvasPosition(canvasPosition)
+	local canvasPosition = canvasPosition or self:GetProperty("CanvasPosition")
+	return canvasPosition:Clamp(Vector.zero, self.RenderCanvasSize-self.RenderSize)
+end
+
+function module:UpdateCanvas(dt)
 	local canvasX, canvasY
 	if self.Canvas then
 		canvasX, canvasY = self.Canvas:getPixelDimensions()
@@ -76,12 +102,11 @@ function module:UpdateCanvas()
 
 	self.RenderCanvasSize = Vector.new(math.max(self.RenderSize.X, solvedCanvasSize.X), math.max(self.RenderSize.Y, solvedCanvasSize.Y))
 
-	self:SetProperty("CanvasPosition", Vector.new(
-		math.clamp(canvasPosition.X, 0, self.RenderCanvasSize.X-self.RenderSize.X),
-		math.clamp(canvasPosition.Y, 0, self.RenderCanvasSize.Y-self.RenderSize.Y)
-	))
+	local desiredPosition = self:GetClampedCanvasPosition()
 
-	if math.round(self.RenderSize.X) ~= canvasX or math.round(self.RenderSize.Y) ~= canvasY then
+	self:SetProperty("CanvasPosition", canvasPosition:Lerp(desiredPosition, 1-0.0000001^dt))
+
+	if love.graphics and (math.round(self.RenderSize.X) ~= canvasX or math.round(self.RenderSize.Y) ~= canvasY) then
 		if self.Canvas then
 			self.Canvas:release()
 			self.Canvas = nil
@@ -96,40 +121,45 @@ end
 
 function module:Update(dt)
 	module.__base.Update(self, dt)
-	self:UpdateCanvas()
+	self:UpdateCanvas(dt)
 end
 
 function module:_draw()
-	if not self.Canvas then return end
-
-	local prevCanvas = love.graphics.getCanvas()
-
-	love.graphics.setCanvas(self.Canvas)
-	love.graphics.clear()
-	love.graphics.push()
-	local offset = self.RenderPosition
-	love.graphics.translate(-offset.X, -offset.Y)
-	self:_drawChildren()
-	love.graphics.pop()
-	love.graphics.setCanvas(prevCanvas)
+	if self.Canvas then
+		local prevCanvas = love.graphics.getCanvas()
+		
+		love.graphics.setCanvas(self.Canvas)
+		love.graphics.clear()
+		love.graphics.push()
+		local offset = self.RenderPosition--+self:GetProperty("CanvasPosition")
+		love.graphics.translate(-offset.X, -offset.Y)
+		self:_drawChildren()
+		love.graphics.pop()
+		love.graphics.setCanvas(prevCanvas)
+	end
 	self:Draw()
 end
 
 function module:Draw()
-	if not self.Canvas then return end
+	module.__base.Draw(self)
 
-	self:GetProperty("CanvasColor"):Apply()
-	love.graphics.cleanDrawImage(self.Canvas, self.RenderPosition, self.RenderSize)
+	if self.Canvas then
+		self:GetProperty("CanvasColor"):Apply()
+		love.graphics.cleanDrawImage(self.Canvas, self.RenderPosition, self.RenderSize)
+	end
 
 	local scrollbarThickness = self:GetProperty("ScrollbarThickness")
 	local canvasPosition = self:GetProperty("CanvasPosition")
 
 	self:GetProperty("ScrollbarColor"):Apply()
+	love.graphics.push()
+	love.graphics.translate(self.RenderPosition.X-self.RenderSize.X, self.RenderPosition.Y-self.RenderSize.Y)
 	if self.RenderSize.Y ~= self.RenderCanvasSize.Y then
 		local scrollPercent = canvasPosition.Y/(self.RenderCanvasSize.Y-self.RenderSize.Y)
 		local scrollbarHeight = self.RenderSize.Y * (self.RenderSize.Y/self.RenderCanvasSize.Y)
 		local scrollbarPosition = self:GetProperty("HorizontalScrollbarSide") == Enum.LateralDirection.Left and 0 or self.RenderSize.X - scrollbarThickness
 
+		love.graphics.rectangle("fill", 0, 0, 10, 10)
 		love.graphics.rectangle("fill",
 			self.RenderSize.X + scrollbarPosition,
 			self.RenderSize.Y + (self.RenderSize.Y - scrollbarHeight) * scrollPercent,
@@ -149,6 +179,7 @@ function module:Draw()
 				scrollbarThickness
 		)
 	end
+	love.graphics.pop()
 end
 
 return module:Register()

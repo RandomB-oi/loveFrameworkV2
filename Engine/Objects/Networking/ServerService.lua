@@ -57,7 +57,6 @@ module.new = function(...)
     self.ClientDisconnected = self.Maid:Add(Signal.new())
     self.MessageRecieved = self.Maid:Add(Signal.new())
 
-    -- finish this
     self.ClientConnected:Connect(function(clientID)
         -- Game:Replicate(nil, clientID)
         for _, service in ipairs(Game:GetServices()) do
@@ -146,28 +145,33 @@ function module:Update()
         end
     end
 
-    local event = self.Host:service(0)
-    while event do
-        if event.type == "connect" then
-            AddClient(self, event.peer)
-        elseif event.type == "receive" then
-            local success, data = encodingService:Decode(event.data)
-            if success and data then
+    xpcall(function()
+        local event = self.Host:service(0)
+        while event do
+            if event.type == "connect" then
+                AddClient(self, event.peer)
+            elseif event.type == "receive" then
+                local success, data = encodingService:Decode(event.data)
+                if success and data then
+                    local clientID = GetClientIDFromPeer(self, event.peer)
+                    if clientID then 
+                        self.MessageRecieved:Fire(clientID, data.name, data.data)
+                    end
+                end
+
+            elseif event.type == "disconnect" then
                 local clientID = GetClientIDFromPeer(self, event.peer)
-                if clientID then 
-                    self.MessageRecieved:Fire(clientID, data.name, data.data)
+                if clientID then
+                    self:DisconnectClient(clientID)
                 end
             end
 
-        elseif event.type == "disconnect" then
-            local clientID = GetClientIDFromPeer(self, event.peer)
-            if clientID then
-                self:DisconnectClient(clientID)
-            end
+            event = self.Host:service(0)
         end
-
-        event = self.Host:service(0)
-    end
+    end, function(message)
+        if message:find("Error during service") then return end -- caused by random things, just ignore
+        logError(message)
+    end)
 end
 
 return module:Register()

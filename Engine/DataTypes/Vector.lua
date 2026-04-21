@@ -39,6 +39,13 @@ function module:GetAngle()
 	return math.atan2(-self.Y, self.X)
 end
 
+function module:Clamp(min, max)
+	return module.new(
+		math.clamp(self.X, min.X, max.X),
+		math.clamp(self.Y, min.Y, max.Y)
+	)
+end
+
 function module:Dot(other)
 	return self.X * other.X + self.Y * other.Y
 end

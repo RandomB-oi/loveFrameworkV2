@@ -1,6 +1,6 @@
-autoLoad("Editor", {"Editor.main"})
+autoLoad("Editor", { "Editor.main" })
 
-local EditorScreen = Object.Create("GUIContainer"):SetProperties({
+EditorScreen = Object.Create("GUIContainer"):SetProperties({
 	Name = "Editor"
 })
 local EditorFrame = Object.Create("Frame"):SetProperties({
@@ -9,7 +9,7 @@ local EditorFrame = Object.Create("Frame"):SetProperties({
 	Size = UDim2.new(1, 0, 1, 0),
 	BackgroundColor = Color.Blank,
 	Position = UDim2.fromScale(0.5, 0.5),
-	AnchorPoint = Vector.one/2,
+	AnchorPoint = Vector.one / 2,
 	Parent = EditorScreen,
 })
 
@@ -43,8 +43,8 @@ local function NewTopButton(image, text)
 	})
 
 	local buttonBackdrop = Object.Create("Frame"):SetProperties({
-		Size = UDim2.new(1,-4,1,-4),
-		AnchorPoint = Vector.one/2,
+		Size = UDim2.new(1, -4, 1, -4),
+		AnchorPoint = Vector.one / 2,
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		BackgroundColor = Color.new(0, 0, 0, .25),
 		Parent = runButton,
@@ -64,14 +64,14 @@ local function NewTopButton(image, text)
 		local label = Object.Create("TextLabel"):SetProperties({
 			Text = text,
 			AnchorPoint = Vector.new(0, 0.5),
-			Size = UDim2.new(1,-BannerSize,1,4),
-			Position = UDim2.new(0, BannerSize-2, .5, 0),
+			Size = UDim2.new(1, -BannerSize, 1, 4),
+			Position = UDim2.new(0, BannerSize - 2, .5, 0),
 			BackgroundColor = Color.Blank,
 			TextColor = Color.White,
 			Parent = buttonBackdrop,
 		})
-		
-		runButton:SetProperty("Size", runButton:GetProperty("Size") + UDim2.new(0, BannerSize * (text:len()*.5), 0, 0))
+
+		runButton:SetProperty("Size", runButton:GetProperty("Size") + UDim2.new(0, BannerSize * (text:len() * .5), 0, 0))
 	end
 
 	return runButton
@@ -102,8 +102,8 @@ ViewportWidget:SetTitle("Editor")
 local ViewportHolder = Object.Create("Frame"):SetProperties({
 	Size = UDim2.fromScale(1, 1),
 	Position = UDim2.fromScale(0.5, 0.5),
-	BackgroundColor = Color.new(0,0,0, 1),
-	AnchorPoint = Vector.one/2,
+	BackgroundColor = Color.new(0, 0, 0, 1),
+	AnchorPoint = Vector.one / 2,
 	Name = "ViewportHolder",
 })
 ViewportWidget:AttachGui(ViewportHolder)
@@ -120,16 +120,16 @@ ViewportWidget:AttachGui(ViewportHolder)
 -- EditorFrame.Viewport = Viewport
 
 local Explorer = Object.Create("Explorer"):SetProperties({
-	Position = UDim2.new(0, 0, 0, 0),
-	AnchorPoint = Vector.zero,
+	Position = UDim2.new(1, 0, 0, 0),
+	AnchorPoint = Vector.new(1,0),
 	Size = UDim2.new(.25, 0, 1, 0),
 	Parent = Area,
 	RootObject = Game,
 })
 
 local Properties = Object.Create("Properties"):SetProperties({
-	Position = UDim2.new(1, 0, 0, 0),
-	AnchorPoint = Vector.new(1, 0),
+	Position = UDim2.new(0, 0, 0, 0),
+	AnchorPoint = Vector.new(0, 0),
 	Size = UDim2.new(.25, 0, 1, 0),
 	Parent = Area,
 })
@@ -138,7 +138,7 @@ EditorFrame.BannerButtons.ToggleFullscreen.LeftClicked:Connect(function()
 	local fullscreen = Explorer:GetProperty("Visible")
 
 	Explorer:SetProperty("Visible", not fullscreen)
-	-- Properties:SetProperty("Visible", not fullscreen)
+	Properties:SetProperty("Visible", not fullscreen)
 	EditorFrame.BannerButtons.ToggleFullscreen.Icon:SetProperty("Image", fullscreen and "Editor/Assets/Minimize.png" or "Editor/Assets/Maximize.png")
 	if fullscreen then
 		ViewportWidget:SetProperty("Size", UDim2.new(1, 0, 1, 0))
@@ -148,32 +148,24 @@ EditorFrame.BannerButtons.ToggleFullscreen.LeftClicked:Connect(function()
 end)
 
 
-	-- local explorer = newEditor:FindFirstChild("Explorer", true)
-	-- -- explorer.RootObject = scene
-	
-	-- explorer.RootObject = Engine
+local function setPaused(paused)
+	EditorFrame.BannerButtons.Pause:SetProperty("Visible", not paused)
+	EditorFrame.BannerButtons.Unpause:SetProperty("Visible", not not paused)
 
-	-- newEditor.Viewport.Paused = true
-	EditorFrame.BannerButtons.Pause:SetProperty("Visible", false)
-	EditorFrame.BannerButtons.Unpause:SetProperty("Visible", true)
+	ViewportHolder:SetProperty("Simulated", not paused)
+end
 
-	ViewportHolder:SetProperty("Simulated", false)
+setPaused(false)
 
-	EditorFrame.BannerButtons.Pause.LeftClicked:Connect(function()
-		ViewportHolder:SetProperty("Simulated", false)
-		
-		EditorFrame.BannerButtons.Pause:SetProperty("Visible", false)
-		EditorFrame.BannerButtons.Unpause:SetProperty("Visible", true)
-	end)
+EditorFrame.BannerButtons.Pause.LeftClicked:Connect(function()
+	setPaused(true)
+end)
 
-	EditorFrame.BannerButtons.Unpause.LeftClicked:Connect(function()
-		ViewportHolder:SetProperty("Simulated", true)
-		
-		EditorFrame.BannerButtons.Pause:SetProperty("Visible", true)
-		EditorFrame.BannerButtons.Unpause:SetProperty("Visible", false)
-	end)
+EditorFrame.BannerButtons.Unpause.LeftClicked:Connect(function()
+	setPaused(false)
+end)
 
-	-- scene.Parent = newEditor.Viewport
+-- scene.Parent = newEditor.Viewport
 
 local existingDropdown
 local function CreateDropdown(options, selected)
@@ -182,13 +174,14 @@ local function CreateDropdown(options, selected)
 		existingDropdown = nil
 	end
 
-	local dropdown = Object.Create("Dropdown", options)
 	local mousePos = Game:GetService("InputService"):GetMouseLocation()
-	dropdown.Position = UDim2.fromOffset(mousePos.X, mousePos.Y)
-	dropdown.AnchorPoint = Vector.zero
-	dropdown.Parent = EditorScreen
+	local dropdown = Object.Create("Dropdown", nil, options):SetProperties({
+		Position = UDim2.fromOffset(mousePos.X, mousePos.Y),
+		AnchorPoint = Vector.zero,
+		Parent = EditorScreen,
+	})
 	existingDropdown = dropdown
-	
+
 	dropdown.ValueSelected:Connect(function(...)
 		if selected(...) then
 			dropdown:Destroy()
@@ -199,32 +192,34 @@ local function CreateDropdown(options, selected)
 end
 
 function EditorScreen:CreateContextMenu(object)
-	-- local dropdown = CreateDropdown({"Insert", "Export", "Duplicate", "Delete"}, function(value)
-	-- 	if value == "Insert" then
-	-- 		local classList = {}
-	-- 		for className in pairs(Instance.Classes) do
-	-- 			table.insert(classList, className)
-	-- 		end
+	local dropdown = CreateDropdown({ "Insert", "Export", "Duplicate", "Delete" }, function(value)
+		if value == "Insert" then
+			local classList = {}
+			for className in next, Object.GetAllClasses() do
+				table.insert(classList, className)
+			end
 
-	-- 		CreateDropdown(classList, function(className)
-	-- 			Object.Create(className).Parent = object
-	-- 			return true
-	-- 		end)
-	-- 		return true
-	-- 	elseif value == "Export" then
-	-- 		local pathName = object:GetFullName():gsub("%.", "_")
-	-- 		Instance.CreatePrefab(object, "ExportedInstances/"..pathName..".lua")
-	-- 		return true
-	-- 	elseif value == "Duplicate" then
-	-- 		local new = object:Clone(true)
-	-- 		new.Name = new.Name
-	-- 		new.Parent = object.Parent
-	-- 		return true
-	-- 	elseif value == "Delete" then
-	-- 		object:Destroy()
-	-- 		return true
-	-- 	end
-	-- end)
+			CreateDropdown(classList, function(className)
+				Object.Create(className):SetProperty("Parent", object)
+				return true
+			end)
+			return true
+		elseif value == "Export" then
+			-- 	local pathName = object:GetFullName():gsub("%.", "_")
+			-- 	Instance.CreatePrefab(object, "ExportedInstances/"..pathName..".lua")
+			return true
+		elseif value == "Duplicate" then
+			local new = object:Clone()
+			new:SetProperties({
+				-- Name = new:GetProperty("Name"),
+				Parent = object:GetProperty("Parent"),
+			})
+			return true
+		elseif value == "Delete" then
+			object:Destroy()
+			return true
+		end
+	end)
 end
 
 Game:SetProperty("Parent", ViewportHolder)

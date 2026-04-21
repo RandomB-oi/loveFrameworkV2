@@ -1,9 +1,11 @@
 local ClientService = Game:GetService("ClientService")
 local ScreenCreator = require(GamePath.."Client.Multiplayer.ServerScreen")
 local LoadingScreenCreator = require(GamePath.."Client.Multiplayer.LoadingScreen")
+local GameScreenCreator = require(GamePath.."Client.Multiplayer.GameScreen")
 
 local currentScreen
 local loadingScreen
+local gameScreen
 
 task.spawn(function()
     while true do
@@ -22,6 +24,16 @@ task.spawn(function()
             if loadingScreen then
                 loadingScreen:Destroy()
                 loadingScreen = nil
+            end
+        end
+        if connectedServer and connected then
+            if not gameScreen then
+                gameScreen = GameScreenCreator(Game)
+            end
+        else
+            if gameScreen then
+                gameScreen:Destroy()
+                gameScreen = nil
             end
         end
         task.wait()

@@ -90,6 +90,15 @@ local PropConverters = {
 			)
 		end
 	},
+	Object = {
+		tostring = function(value)
+			if not value then return "*nothing*" end
+			return "(".. value.__type ..") - " .. tostring(value:GetProperty("Name"))
+		end,
+		tovalue = function(str)
+			return
+		end
+	},
 	number = {
 		tostring = stringRound,
 		tovalue = tonumber,

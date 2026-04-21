@@ -8,10 +8,11 @@ module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
 module:SetDefaultProperyValue("Visible", true)
-module:CreateProperty("DeltaTime", "number", 0)
+module:CreateProperty("DeltaTime", "number", 0, nil, true)
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
+	self.DeltaTime = 0
 
 	self.RenderSignal = self.Maid:Add(Signal.new())
 	self.UpdateSignal = self.Maid:Add(Signal.new())

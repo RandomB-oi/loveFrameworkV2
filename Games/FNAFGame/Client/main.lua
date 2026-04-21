@@ -35,6 +35,6 @@ local function StartGame()
 end
 
 
-	Game:GetService("ClientService"):HostLocalServer()
+	-- Game:GetService("ClientService"):HostLocalServer()
 
 StartGame()

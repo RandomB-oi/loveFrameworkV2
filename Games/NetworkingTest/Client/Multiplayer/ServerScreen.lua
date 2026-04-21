@@ -12,6 +12,8 @@ return function (parent)
         Name = "ServerConnectScene",
         Size = UDim2.fromScale(1,1),
         BackgroundColor = Color.new(0,0,0,1),
+        AnchorPoint = Vector.new(0.5, 0.5),
+        Position = UDim2.fromScale(0.5, 0.5),
         Parent = renderContainer
     })
 
@@ -28,7 +30,7 @@ return function (parent)
         Size = UDim2.new(.5, 0, 1, 0),
         Position = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector.new(0, 0),
-        Color = Color.from255(255,255,255,200),
+        BackgroundColor = Color.from255(255,255,255,50),
         ScrollbarPadding = Enum.ScrollbarPadding.Scrollbar,
         Parent = mainFrame,
     })
@@ -55,8 +57,7 @@ return function (parent)
     local serial = 0
     local function NewButton(text)
         serial = serial + 1
-        local button = Object.Create("Button")
-        button:SetProperties({
+        local button = Object.Create("Button"):SetProperties({
             Size = UDim2.new(1, 0, 0, 75),
             Position = UDim2.new(0, 0, 0, 0),
             AnchorPoint = Vector.new(0.5, 0),
@@ -65,8 +66,7 @@ return function (parent)
             Parent = backdrop,
         })
 
-        local textLabel = Object.Create("TextLabel")
-        textLabel:SetProperties({
+        Object.Create("TextLabel"):SetProperties({
             Size = UDim2.new(1, -6, 1, -6),
             Position = UDim2.new(0.5, 0, 0.5, 0),
             AnchorPoint = Vector.new(0.5, 0.5),
@@ -91,7 +91,7 @@ return function (parent)
         Size = UDim2.new(.5, -6, 1, 0),
         Position = UDim2.new(1, 0, 0, 0),
         AnchorPoint = Vector.new(1, 0),
-        Color = Color.from255(255,255,255,200),
+        BackgroundColor = Color.from255(255,255,255,50),
         ScrollbarPadding = Enum.ScrollbarPadding.Scrollbar,
         Parent = mainFrame,
         Enabled = false,
@@ -105,8 +105,7 @@ return function (parent)
         Parent = joinBackdrop,
     })
 
-    local layout = Object.Create("UIListLayout")
-    layout:SetProperties({
+    Object.Create("UIListLayout"):SetProperties({
         Padding = UDim2.fromOffset(6, 6),
         ListAxis = Vector.yAxis,
         Parent = joinBackdrop,
@@ -118,9 +117,7 @@ return function (parent)
         Position = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector.new(0.5, 0),
         BackgroundColor = Color.from255(255,255,255,200),
-        -- BackgroundColor = Color.Blank,
         PlaceholderText = "Server IP",
-        -- Text = "147.185.221.19", -- generated ip from play-it, deleted after done testing
         Text = "localhost",
         LayoutOrder = 1,
         Parent = joinBackdrop,
@@ -132,7 +129,6 @@ return function (parent)
         Position = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector.new(0.5, 0),
         BackgroundColor = Color.from255(255,255,255,200),
-        -- BackgroundColor = Color.Blank,
         PlaceholderText = "Server Port",
         Text = "6767",
         LayoutOrder = 2,

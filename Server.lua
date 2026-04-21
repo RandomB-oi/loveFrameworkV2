@@ -19,8 +19,8 @@ RunService._isServer = true
 
 _G._rootObject = _G._rootObject or Game
 require("LoaderConfig")
-task.spawn(require, GamePath.."Shared.main")
-task.spawn(require, GamePath.."Server.main")
+require(GamePath.."Shared.main")
+require(GamePath.."Server.main")
 
 ServerService:StartServer(6767)
 

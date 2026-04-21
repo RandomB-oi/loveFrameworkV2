@@ -67,6 +67,7 @@ local TypeCleaners = {
 }
 
 module.ObjectCreated = Signal.new()
+module.HangingObjectReferences = {}
 
 function module.GetClass(className)
     return RegisteredClasses[className]
@@ -82,6 +83,10 @@ function module.Create(className, id, ...)
     local created = class.new(id, ...)
     module.ObjectCreated:Fire(created.ID, created)
     return created
+end
+
+function module.GetAllClasses()
+    return RegisteredClasses
 end
 
 function module.GetAll()
@@ -116,6 +121,11 @@ module.new = function(id)
                 newParent:_setChild(self.ID, nil)
                 newParent.ChildRemoved:Fire(self)
             end)
+        end
+    end)
+    self.Maid:GiveTask(function()
+        for _, signal in next, self._cs or {} do
+            signal:Destroy()
         end
     end)
 
@@ -231,7 +241,9 @@ function module:Clone()
 
     instanceRefs[self] = module.Create(self.__type)
     for _, child in next, allChildren do
-        instanceRefs[child] = module.Create(child.__type)
+        if child:GetProperty("Archivable") then
+            instanceRefs[child] = module.Create(child.__type)
+        end
     end
 
     for prop, value in next, self:GetProperties() do
@@ -241,8 +253,10 @@ function module:Clone()
     end
     for _, child in next, allChildren do
         local newChild = instanceRefs[child]
-        for prop, value in next, child:GetProperties() do
-            newChild:SetProperty(prop, instanceRefs[value] or value)
+        if newChild then
+            for prop, value in next, child:GetProperties() do
+                newChild:SetProperty(prop, instanceRefs[value] or value)
+            end
         end
     end
 
@@ -289,6 +303,7 @@ function module:WaitForChild(name, timeout)
     timeout = timeout or math.huge
 
     while os.clock() - begin < timeout do
+        if not All[self.ID] then return end
         local found = self:FindChild(name)
         if found then
             return found
@@ -457,13 +472,13 @@ function module:SerializeData()
         local propInfo = self.ClassProperties[prop]
 
         local can = propInfo.Replicates
-        if not can then print(prop, "doesnt replicate") end
+        if not can then end
         
         if can and propInfo.Type == "Object" and value then
-            if not value:CanReplicate() then
-                can = false
+            if value:CanReplicate() then
+                value = value:Serialize()
             else
-                value = value.ID
+                can = false
             end
         end
         
@@ -574,6 +589,7 @@ module:CreateProperty("Name", "string", module.__type)
 module:CreateProperty("Simulated", "boolean", true)
 module:CreateProperty("Visible", "boolean", true)
 module:CreateProperty("Replicates", "boolean", true)
+module:CreateProperty("Archivable", "boolean", true)
 module:CreateProperty("ZIndex", "number", 1)
 module:CreateProperty("Parent", "Object", nil)
 

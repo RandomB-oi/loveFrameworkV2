@@ -4,12 +4,11 @@ module.__index = module
 local NextClientID = 0
 
 local function GetID() -- count downwards so it doesnt conflict with the entity ids
-    NextClientID = NextClientID + 1
-	return tostring(-NextClientID)
+    NextClientID = NextClientID - 1
+	return tostring(NextClientID)
 end
 
 module.new = function(peer)
-	local ServerService = Game:GetService("ServerService")
 	local PlayerService = Game:GetService("Players")
 
     local self = setmetatable({}, module)
@@ -23,11 +22,6 @@ module.new = function(peer)
 	})
 
 	self.PendingMessages = {}
-
-	PlayerService.PlayerAdded:Fire(self.Instance)
-	self.Maid:GiveTask(function()
-		PlayerService.PlayerRemoved:Fire(self.Instance)
-	end)
 
 	return self
 end
@@ -45,6 +39,7 @@ function module:SendMessage(message, data)
 			end
 		end
 	end
+	
 	if not updated then
 		table.insert(self.PendingMessages, {
 			name = message,
@@ -52,14 +47,14 @@ function module:SendMessage(message, data)
 		})
 	end
 
-	local encodingService = Game:GetService("EncodingService")
-	local success, data = encodingService:Encode({
-		name = message,
-		data = data,
-	})
-	if success then
-		self.Peer:send(data)
-	end
+	-- local encodingService = Game:GetService("EncodingService")
+	-- local success, data = encodingService:Encode({
+	-- 	name = message,
+	-- 	data = data,
+	-- })
+	-- if success then
+	-- 	self.Peer:send(data)
+	-- end
 end
 
 function module:BatchSend()

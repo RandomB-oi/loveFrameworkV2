@@ -2,13 +2,7 @@ _G._rootObject = nil
 
 local ogHandler = love.errhand
 love.errhand = function(message)
-    local file = io.open("debug_log.txt", "a")
-    if file then
-        file:write("\n"..os.date().."\n"..message.."\n")
-        file:close()
-    end
-    print(message)
-    os.execute("pause")
+    logError(message, true)
     ogHandler(message)
 end
 
@@ -23,7 +17,7 @@ love.load = function()
 	end
 
 	if _G.LaunchParameters.server then
-		RunService._editor = false
+		-- RunService._editor = false
 		RunService._isServer = true
 	end
 

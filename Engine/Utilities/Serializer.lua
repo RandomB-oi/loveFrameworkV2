@@ -4,7 +4,7 @@ local typeLookup = {
 	Enum = function(category, name)
 		return Enum[category][name]
 	end,
-	Instance = function(id)
+	Object = function(id)
 		return id
 	end,
 
@@ -37,6 +37,8 @@ function module.Encode(value, cyclicValues)
 			encoded[module.Encode(i)] = module.Encode(v)
 		end
 		return encoded
+	elseif type(value) == "Object" then
+		return value:Serialize()
 	end
 
 	return value

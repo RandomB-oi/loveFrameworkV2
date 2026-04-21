@@ -16,6 +16,18 @@ typeof = function(value)
 	return t
 end
 
+logError = function(message, pause)
+	local file = io.open("debug_log.txt", "a")
+    if file then
+        file:write("\n"..os.date().."\n"..message.."\n")
+        file:close()
+    end
+    print(message)
+	if pause then
+    	os.execute("pause")
+	end
+end
+
 printTable = function(value, tabs)
     tabs = tabs or 0
     local tabString = string.rep("\t", tabs)

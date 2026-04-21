@@ -54,8 +54,9 @@ function module:ToLua()
 end
 
 function module:Destroy()
-	self.Signal = nil
+	if not self.Signal then OutputMessage() return end
 	self.Signal:Destroy()
+	self.Signal = nil
 	
 	if self.Callback then
 		self.Callback()

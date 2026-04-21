@@ -109,8 +109,10 @@ function module:UpdateRenderProperties(parentPos, parentSize)
         if not (parent and parent.RenderPosition and parent.RenderSize) then
             return
         end
-        return self:UpdateRenderProperties(parent.RenderPosition, parent.RenderSize)
+        return self:UpdateRenderProperties(parent.RenderPosition, parent.RenderCanvasSize or parent.RenderSize)
     end
+
+    parentPos = parentPos - (parent:GetProperty("CanvasPosition") or Vector.zero)
 
     local prevPos, prevSize = self.RenderPosition, self.RenderSize
 
@@ -132,7 +134,7 @@ function module:UpdateRenderProperties(parentPos, parentSize)
         newPos = parentPos + pos:Calculate(parentSize) - newSize * anchor
     end
 
-    if newPos == prevPos and newSize == prevSize then return end
+    if newPos == prevPos and newSize == prevSize and not self:IsA("ScrollingFrame") then return end
 
     self.RenderPosition = newPos
     self.RenderSize = newSize

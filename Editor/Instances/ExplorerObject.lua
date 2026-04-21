@@ -10,7 +10,7 @@ module:SetDefaultProperyValue("Name", module.__type)
 local Selection = Game:GetService("Selection")
 local InputService = Game:GetService("InputService")
 
-local DefaultExpanded = false
+local DefaultExpanded = true
 local CellHeight = 20
 
 module.new = function(id, object, depth)
@@ -139,9 +139,10 @@ module.new = function(id, object, depth)
 	end)
 
 	self.Button.RightClicked:Connect(function()
-		-- EditorScreen:CreateContextMenu(self.Object)
+		print("make")
+		EditorScreen:CreateContextMenu(self.Object)
 	end)
-	
+
 	for _, child in ipairs(self.Object:GetChildren()) do
 		self:NewChild(child)
 	end

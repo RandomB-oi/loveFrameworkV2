@@ -176,23 +176,30 @@ function module:Update()
     if not (self.ServerPeer and self.Host) then return end
     local encodingService = Game:GetService("EncodingService")
 
-    local event = self.Host:service(0)
-    while event do
-        if event.type == "receive" then
-            local success,  data = encodingService:Decode(event.data)
+    xpcall(function()
+        local event = self.Host:service(0)
+        while event do
+            if event.type == "receive" then
+                local success,  data = encodingService:Decode(event.data)
 
-            if success then
-                self.MessageRecieved:Fire(data.name, data.data)
+                if success then
+                    self.MessageRecieved:Fire(data.name, data.data)
+                end
+            elseif event.type == "connect" then
+                self._connected = true
+                self.Connected:Fire()
+            elseif event.type == "disconnect" then
+                self:DisconnectFromServer()
+                break
             end
-        elseif event.type == "connect" then
-            self._connected = true
-            self.Connected:Fire()
-        elseif event.type == "disconnect" then
-            self:DisconnectFromServer()
-        end
 
-        event = self.Host:service(0)
-    end
+            event = self.Host:service(0)
+        end
+    end, function(message)
+        if message:find("Error during service") then return end -- caused by random things, just ignore
+        logError(message)
+    end)
+    
 
     self:CheckTimeout()
 end

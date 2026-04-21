@@ -1,12 +1,13 @@
 require("LoaderConfig")
 
-task.spawn(require, GamePath.."Shared.main")
-task.spawn(require, GamePath.."Client.main")
+require(GamePath.."Shared.main")
+require(GamePath.."Client.main")
 
 local RunService = Game:GetService("RunService")
 _G._rootObject = _G._rootObject or Game
 
 love.window.setMode(800, 600, {resizable = true})
+love.graphics.setDefaultFilter("nearest", "nearest")
 
 love.update = function(dt)
     -- dt = 1/30
@@ -21,7 +22,7 @@ love.draw = function()
     local goodFPS = Color.new(0, 1, 0, 1)
     local okFPS = Color.new(1, 1, 0, 1)
     local stinkyFPS = Color.new(1, 0, 0, 1)
-    local fps = math.round(1/RunService.DeltaTime)
+    local fps = math.round(1/RunService:GetProperty("DeltaTime"))
     if fps < 15 then
         stinkyFPS:Apply()
     elseif fps < 30 then

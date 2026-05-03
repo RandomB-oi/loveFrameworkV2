@@ -6,16 +6,23 @@ setmetatable(module, module.__base)
 
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
-module:SetDefaultProperyValue("ZIndex", 5)
+module:SetDefaultProperyValue("ZIndex", 6)
 module:SetDefaultProperyValue("AnchorPoint", Vector.new(0.5, 0.5))
+module:SetDefaultProperyValue("BorderSize", 5)
+module:SetDefaultProperyValue("BorderColor", Color.Red)
+module:SetDefaultProperyValue("Size", UDim2.fromScale(.5, .5))
+module:CreateProperty("WalkSpeed", "number", 7)
 
 local Run = Game:GetService("RunService")
 local Players = Game:GetService("Players")
 local InputService = Run:IsClient() and Game:GetService("InputService")
+local TweenService = Game:GetService("TweenService")
+
+local ReplicationStepTime = 1/20
+local ReplicateTweenInfo = TweenInfo.new(ReplicationStepTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
-
     if Run:IsServer() then
         self.UpdateRemote = Object.Create("RemoteEvent"):SetProperties({
             Parent = self,
@@ -23,7 +30,7 @@ module.new = function(...)
             Name = "UpdateRemote",
         })
         self.UpdateRemote.Event:Connect(function(player, pos)
-            if not self:Owns(player) then print("they dont own it") return end
+            if not self:Owns(player) then return end
 
             for _, otherPlayer in next, Players:GetPlayers() do
                 if otherPlayer ~= player then
@@ -37,13 +44,16 @@ module.new = function(...)
         task.spawn(function()
             self.UpdateRemote = self:WaitForChild("UpdateRemote")
             self.UpdateRemote.Event:Connect(function(pos)
-                self:SetProperty("Position", pos)
+                -- self:SetProperty("Position", pos)
+
+                local tween = TweenService:Create(self, ReplicateTweenInfo, {Position = pos})
+                tween:Play()
             end)
             while self.UpdateRemote:GetProperty("Parent") == self do
                 if self:Owns() then
                     self.UpdateRemote:FireServer(self:GetProperty("Position"))
                 end
-                task.wait(1/20)
+                task.wait(ReplicationStepTime)
             end
         end)
     end
@@ -60,11 +70,12 @@ function module:Owns(player)
 end
 
 function module:Update(dt)
+    -- local dt = Run:GetProperty("FixedTickRate")
     module.__base.Update(self, dt)
     if Run:IsServer() then return end
     if not self:Owns() then return end
 
-    local moveSpeed = 10
+    local moveSpeed = self:GetProperty("WalkSpeed")
 
     local moveVector = Vector.zero
     if InputService:IsKeyPressed(Enum.KeyCode.W) then

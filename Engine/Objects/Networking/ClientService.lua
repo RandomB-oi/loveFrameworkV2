@@ -4,6 +4,7 @@ module.__type = "ClientService"
 module.__base = require("Engine.Objects.Services.Service")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/NetworkClient.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
@@ -32,14 +33,16 @@ module.new = function(...)
     self.Disconnected = Signal.new()
     self.MessageRecieved = Signal.new()
 
-    self.Hidden = false
-
     self.ServerPeer = nil
     self.LocalServer = nil
     self.LastPing = os.clock()
 
     self.Disconnected:Connect(ClearInstances)
     self.MessageRecieved:Connect(function(message, data)
+        -- if not self._connected2 then
+        --     self.Connected:Wait()
+        -- end
+        -- print(message)
         if message == "CreateInstance" then
             local data = Serializer.Decode(data)
             local object = self:GetInstance(data.ID, data.ClassName)
@@ -47,7 +50,7 @@ module.new = function(...)
         elseif message == "UpdateProperty" then
             local object = self:GetInstance(data.ID)
             if object then
-                object:SetProperty(data.Prop, Serializer.Decode(data.Value))
+                object:ReplicateProperty(data.Prop, Serializer.Decode(data.Value))
             end
         elseif message == "RemoveInstance" then
             local object = self:GetInstance(data.ID)
@@ -68,8 +71,11 @@ module.new = function(...)
         elseif message == "Ping" then
             self.LastPing = os.clock()
         elseif message == "connect" then
+            print("my id is", data.id)
             self:SetProperty("LocalID", data.id)
             self:SendMessage("connected")
+            self.Connected:Fire()
+            -- self._connected2 = true
         end
     end)
 
@@ -127,6 +133,7 @@ end
 
 function module:DisconnectFromServer()
     self._connected = false
+    -- self._connected2 = false
     
     if self.ServerPeer then
         self.ServerPeer:disconnect()
@@ -187,7 +194,6 @@ function module:Update()
                 end
             elseif event.type == "connect" then
                 self._connected = true
-                self.Connected:Fire()
             elseif event.type == "disconnect" then
                 self:DisconnectFromServer()
                 break
@@ -199,7 +205,6 @@ function module:Update()
         if message:find("Error during service") then return end -- caused by random things, just ignore
         logError(message)
     end)
-    
 
     self:CheckTimeout()
 end

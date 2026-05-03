@@ -18,7 +18,6 @@ module.new = function(peer)
 	self.Instance = self.Maid:Add(Object.Create("Player", self.ID))
 	self.Instance:SetProperties({
 		Name = self.ID,
-		Parent = PlayerService,
 	})
 
 	self.PendingMessages = {}

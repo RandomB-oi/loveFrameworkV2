@@ -36,16 +36,16 @@ return function (parent)
     })
 
     Object.Create("UIPadding"):SetProperties({
-        PaddingLeft = UDim.new(0, 6),
-        PaddingRight = UDim.new(0, 6),
-        PaddingTop = UDim.new(0, 6),
-        PaddingBottom = UDim.new(0, 6),
+        PaddingLeft = UDim.new(0, 3),
+        PaddingRight = UDim.new(0, 3),
+        PaddingTop = UDim.new(0, 3),
+        PaddingBottom = UDim.new(0, 3),
         Parent = backdrop,
     })
 
     local layout = Object.Create("UIListLayout")
     layout:SetProperties({
-        Padding = UDim2.fromOffset(6, 6),
+        Padding = UDim2.fromOffset(0, 0),
         ListAxis = Vector.yAxis,
         Parent = backdrop,
     })
@@ -57,14 +57,32 @@ return function (parent)
     local serial = 0
     local function NewButton(text)
         serial = serial + 1
-        local button = Object.Create("Button"):SetProperties({
+        local holder = Object.Create("Frame"):SetProperties({
             Size = UDim2.new(1, 0, 0, 75),
             Position = UDim2.new(0, 0, 0, 0),
             AnchorPoint = Vector.new(0.5, 0),
-            BackgroundColor = Color.from255(255,255,255,200),
+            BackgroundColor = Color.Blank,
             LayoutOrder = serial,
             Parent = backdrop,
         })
+        local button = Object.Create("Button"):SetProperties({
+            Size = UDim2.new(1, -6, 1, -6),
+            Position = UDim2.new(0.5, 0, 0.5, 0),
+            AnchorPoint = Vector.new(0.5, 0.5),
+            BackgroundColor = Color.from255(255,255,255,200),
+            LayoutOrder = serial,
+            Parent = holder,
+        })
+
+        button:GetPropertyChangedSignal("Hovering"):Connect(function()
+            local size = button:GetProperty("Hovering") and UDim2.new(1,0,1,0) or UDim2.new(1, -6, 1, -6)
+
+            Game:GetService("TweenService"):Create(
+                button,
+                TweenInfo.new(1/7, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+                {Size = size}
+            ):Play()
+        end)
 
         Object.Create("TextLabel"):SetProperties({
             Size = UDim2.new(1, -6, 1, -6),
@@ -76,7 +94,7 @@ return function (parent)
             Parent = button,
         })
 
-        return button
+        return button, holder
     end
 
 
@@ -94,63 +112,77 @@ return function (parent)
         BackgroundColor = Color.from255(255,255,255,50),
         ScrollbarPadding = Enum.ScrollbarPadding.Scrollbar,
         Parent = mainFrame,
-        Enabled = false,
+        Visible = false,
     })
 
     Object.Create("UIPadding"):SetProperties({
-        PaddingLeft = UDim.new(0, 6),
-        PaddingRight = UDim.new(0, 6),
-        PaddingTop = UDim.new(0, 6),
-        PaddingBottom = UDim.new(0, 6),
+        PaddingLeft = UDim.new(0, 3),
+        PaddingRight = UDim.new(0, 3),
+        PaddingTop = UDim.new(0, 3),
+        PaddingBottom = UDim.new(0, 3),
         Parent = joinBackdrop,
     })
 
     Object.Create("UIListLayout"):SetProperties({
-        Padding = UDim2.fromOffset(6, 6),
+        Padding = UDim2.fromOffset(0, 0),
         ListAxis = Vector.yAxis,
         Parent = joinBackdrop,
     })
 
-    local serverIP = Object.Create("TextBox")
-    serverIP:SetProperties({
+    local serverIPHolder = Object.Create("Frame"):SetProperties({
         Size = UDim2.new(1, 0, 0, 75),
         Position = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector.new(0.5, 0),
-        BackgroundColor = Color.from255(255,255,255,200),
-        PlaceholderText = "Server IP",
-        Text = "localhost",
+        BackgroundColor = Color.Blank,
         LayoutOrder = 1,
         Parent = joinBackdrop,
     })
+    local serverIP = Object.Create("TextBox")
+    serverIP:SetProperties({
+        Size = UDim2.new(1, -6, 1, -6),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector.new(0.5, 0.5),
+        BackgroundColor = Color.from255(255,255,255,200),
+        PlaceholderText = "Server IP",
+        Text = "localhost",
+        Parent = serverIPHolder,
+    })
 
-    local serverPort = Object.Create("TextBox")
-    serverPort:SetProperties({
+    local serverPortHolder = Object.Create("Frame"):SetProperties({
         Size = UDim2.new(1, 0, 0, 75),
         Position = UDim2.new(0, 0, 0, 0),
         AnchorPoint = Vector.new(0.5, 0),
-        BackgroundColor = Color.from255(255,255,255,200),
-        PlaceholderText = "Server Port",
-        Text = "6767",
+        BackgroundColor = Color.Blank,
         LayoutOrder = 2,
         Parent = joinBackdrop,
     })
+    local serverPort = Object.Create("TextBox")
+    serverPort:SetProperties({
+        Size = UDim2.new(1, -6, 1, -6),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector.new(0.5, 0.5),
+        BackgroundColor = Color.from255(255,255,255,200),
+        PlaceholderText = "Server Port",
+        Text = "6767",
+        Parent = serverPortHolder,
+    })
 
-    local connectButton = NewButton("Connect")
-    connectButton:SetProperties({
+    local connectButton, connectHolder = NewButton("Connect")
+    connectHolder:SetProperties({
         LayoutOrder = 3,
         Parent = joinBackdrop,
     })
 
     connectButton.LeftClicked:Connect(function()
-        ClientService:ConnectToServer(serverIP.Text, serverPort.Text)
+        ClientService:ConnectToServer(serverIP:GetProperty("Text"), serverPort:GetProperty("Text"))
     end)
 
     layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function(size)
-        joinBackdrop.CanvasSize = UDim2.fromOffset(0, size.Y)
+        joinBackdrop:SetProperty("CanvasSize", UDim2.fromOffset(0, size.Y))
     end)
 
     NewButton("Join").LeftClicked:Connect(function()
-        joinBackdrop.Enabled = not joinBackdrop.Enabled
+        joinBackdrop:SetProperty("Visible", not joinBackdrop:GetProperty("Visible"))
     end)
 
     return renderContainer

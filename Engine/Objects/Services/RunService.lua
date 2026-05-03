@@ -9,6 +9,12 @@ module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
 module:SetDefaultProperyValue("Visible", true)
 module:CreateProperty("DeltaTime", "number", 0, nil, true)
+module:CreateProperty("TimeScale", "number", 1)
+
+module:CreateProperty("ElapsedTime", "number", 0, nil, true)
+module:CreateProperty("FixedTickRate", "number", 1/30)
+module:CreateProperty("CurrentTick", "number", 0, nil, true)
+module:CreateProperty("ServerTime", "number", 0) -- used for syncronization, use ElapsedTime
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
@@ -18,6 +24,12 @@ module.new = function(...)
 	self.UpdateSignal = self.Maid:Add(Signal.new())
 	self._isServer = not not _G.LaunchParameters.server
 	self._editor = not not _G.LaunchParameters.editor
+
+	if self:IsClient() then -- sync it
+		self:GetPropertyChangedSignal("ServerTime"):Connect(function()
+			
+		end)
+	end
 
 	return self
 end
@@ -34,6 +46,7 @@ function module:IsEditor()
 end
 
 function module:Update(dt)
+	self:SetProperty("ElapsedTime", self:GetProperty("ElapsedTime") + dt)
 	self.UpdateSignal:Fire(dt)
 end
 

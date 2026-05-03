@@ -10,7 +10,7 @@ module:SetDefaultProperyValue("Name", module.__type)
 local Selection = Game:GetService("Selection")
 local InputService = Game:GetService("InputService")
 
-local DefaultExpanded = true
+local DefaultExpanded = false
 local CellHeight = 20
 
 module.new = function(id, object, depth)

@@ -2,40 +2,63 @@ local Players = Game:GetService("Players")
 Players:SetProperty("StarterCharacter", Object.Create("Character"))
 
 local MainRender = Object.Create("GUIContainer"):SetProperties({
-    Name = "MainRender",
+    Name = "WorldRender",
     Parent = workspace,
 })
 
 local Holder = Object.Create("Frame"):SetProperties({
     Name = "Holder",
-    Size = UDim2.new(0, 16, 0, 16),
+    Size = UDim2.new(0, 1, 0, 1),
     Position = UDim2.fromScale(0.5,0.5),
     AnchorPoint = Vector.new(0.5,0.5),
-    BackgroundColor = Color.new(1,0,1,1),
+    BackgroundColor = Color.new(0,1,1,1),
     Parent = MainRender,
 })
 
--- task.delay(5, function()
---     local frame = Object.Create("Frame"):SetProperties({
---         Parent = Holder,
---         BackgroundColor = Color.Red,
---         Size = UDim2.new(0, 200, 0, 50),
---     })
---     task.wait(3)
---     frame:Destroy()
---     print("Gone")
--- end)
+local WorldScale = Object.Create("UIScale"):SetProperties({
+    Name = "WorldScale",
+    Parent = Holder,
+    Scale = 32,
+})
+
+local RenderHolder = Object.Create("Frame"):SetProperties({
+    Name = "RenderHolder",
+    Size = UDim2.new(1, 0, 1, 0),
+    Position = UDim2.fromScale(0.5,0.5),
+    AnchorPoint = Vector.new(0.5,0.5),
+    BackgroundColor = Color.new(1,0,1,1),
+    Parent = Holder,
+})
+
+local Storage = Object.Create("Folder"):SetProperties({
+    Name = "Storage",
+    Parent = workspace,
+    Visible = false,
+    Simulated = false,
+})
+
+local Remotes = Object.Create("Folder"):SetProperties({
+    Name = "Remotes",
+    Parent = Storage,
+})
+
+local ReplicateChunkData = Object.Create("RemoteEvent"):SetProperties({
+    Name = "ReplicateChunkData",
+    Parent = Remotes,
+})
+
+Players:SetProperty("CharacterParent", RenderHolder)
 
 
--- local WorldAspectRatio = Object.Create("UIAspectRatioConstraint"):SetProperties({
---     AspectRatio = 1,
---     Parent = Holder,
--- })
-
--- local WorldScale = Object.Create("UIScale"):SetProperties({
---     Name = "WorldScale",
---     Parent = Holder,
---     Scale = 5,
--- })
-
-Players:SetProperty("CharacterParent", Holder)
+        Object.Create("WorldChunk"):SetProperties({
+            Parent = RenderHolder,
+            -- Position = UDim2.fromScale(x*8, y*8)
+        })
+-- for x = -2, 2 do
+--     for y = -2, 2 do
+--         Object.Create("WorldChunk"):SetProperties({
+--             Parent = RenderHolder,
+--             Position = UDim2.fromScale(x*8, y*8)
+--         })
+--     end
+-- end

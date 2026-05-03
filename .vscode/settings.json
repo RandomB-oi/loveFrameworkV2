@@ -6,7 +6,8 @@
     "Lua.diagnostics.disable": [
         "lowercase-global",
         "deprecated",
-        "discard-returns"
+        "discard-returns",
+        "duplicate-set-field"
     ],
     "stylua.targetReleaseVersion": "latest"
 }

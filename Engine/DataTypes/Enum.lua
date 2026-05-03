@@ -66,6 +66,12 @@ local EngineEnums = {
 		Bottom = NewEnum("YAlignment"),
 	},
 	
+	BorderAlignment = {
+		Outside = NewEnum("BorderAlignment"),
+		Middle = NewEnum("BorderAlignment"),
+		Inside = NewEnum("BorderAlignment"),
+	},
+	
 	SortMode = {
 		LayoutOrder = NewEnum("SortMode"),
 		Name = NewEnum("SortMode"),
@@ -88,6 +94,23 @@ local EngineEnums = {
 
 	EncodingMethod = {
 		Json = NewEnum("EncodingMethod"),
+	},
+
+	EasingStyle = {
+		Linear = NewEnum("EasingStyle"),
+		Quad = NewEnum("EasingStyle"),
+		Cubic = NewEnum("EasingStyle"),
+		Quart = NewEnum("EasingStyle"),
+		Quint = NewEnum("EasingStyle"),
+		Elastic = NewEnum("EasingStyle"),
+		Sine = NewEnum("EasingStyle"),
+		Bounce = NewEnum("EasingStyle"),
+		Back = NewEnum("EasingStyle"),
+	},
+	EasingDirection = {
+		In = NewEnum("EasingDirection"),
+		Out = NewEnum("EasingDirection"),
+		InOut = NewEnum("EasingDirection"),
 	},
 
 	KeyCode = {

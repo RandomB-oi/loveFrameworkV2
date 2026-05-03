@@ -10,6 +10,7 @@ module:SetDefaultProperyValue("Name", module.__type)
 
 module:CreateProperty("LeftClickHeld", "boolean", false)
 module:CreateProperty("RightClickHeld", "boolean", false)
+module:CreateProperty("Hovering", "boolean", false)
 
 module.new = function(...)
 	local self = setmetatable(module.__base.new(...), module)
@@ -21,7 +22,7 @@ module.new = function(...)
 
 	self.Maid:GiveTask(Game:GetService("InputService").InputBegan:Connect(function(input)
 		if input.MouseButton == Enum.MouseButton.MouseButton1 or input.MouseButton == Enum.MouseButton.MouseButton2 then
-			if self._hovering and self:IsSimulated() and self:IsVisible() then
+			if self:GetProperty("Hovering") and self:IsSimulated() and self:IsVisible() then
 				if input.MouseButton == Enum.MouseButton.MouseButton1 then
 					self:SetProperty("LeftClickHeld", true)
 					self.LeftClicked:Fire()
@@ -49,24 +50,25 @@ end
 function module:Update(dt)
 	module.__base.Update(self, dt)
 
-	local hovering = self:MouseHovering()
-	if self._hovering ~= hovering then
-		self._hovering = hovering
-		self._changed = true
-	end
+	self:SetProperty("Hovering", self:MouseHovering())
 end
 
 
 function module:Draw()
+	self:PushShader()
+
     local backgroundColor = self:GetProperty("BackgroundColor")
     if backgroundColor.A > 0 then
-		if self._hovering then
+		if self:GetProperty("Hovering") then
 			(backgroundColor-Color.new(.2,.2,.2,0)):Apply()
 		else
 			backgroundColor:Apply()
 		end
         love.graphics.rectangle("fill", self.RenderPosition.X, self.RenderPosition.Y, self.RenderSize.X, self.RenderSize.Y)
     end
+	
+	self:DrawBorder()
+	self:PopShader()
 end
 
 return module:Register()

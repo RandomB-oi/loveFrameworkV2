@@ -9,10 +9,19 @@ _G._rootObject = _G._rootObject or Game
 love.window.setMode(800, 600, {resizable = true})
 love.graphics.setDefaultFilter("nearest", "nearest")
 
+local fixedTickTime = 0
 love.update = function(dt)
-    -- dt = 1/30
+    dt = dt * RunService:GetProperty("TimeScale")
+    fixedTickTime = fixedTickTime + dt
+
     task.update(dt)
     RunService.DeltaTime = dt
+    local fixedTickRate = RunService:GetProperty("FixedTickRate")
+    while fixedTickTime >= fixedTickRate do
+        fixedTickTime = fixedTickTime - fixedTickRate
+        _G._rootObject:_fixedUpdate()
+        RunService:SetProperty("CurrentTick", RunService:GetProperty("CurrentTick") + 1)
+    end
     _G._rootObject:_update(dt)
 end
 

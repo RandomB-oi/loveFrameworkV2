@@ -1,1 +1,1 @@
-love . --editor --server
+start love . --editor --server

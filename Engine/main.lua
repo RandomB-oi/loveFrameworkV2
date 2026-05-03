@@ -53,7 +53,7 @@ if love.graphics then
 end
 
 do -- DataTypes
-	Binary = require("Engine.DataTypes.Binary")
+	Buffer = require("Engine.DataTypes.Buffer")
 	Vector = require("Engine.DataTypes.Vector")
 
 	Color = require("Engine.DataTypes.Color")

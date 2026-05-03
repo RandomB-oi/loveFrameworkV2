@@ -4,6 +4,7 @@ module.__type = "DataModel"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/ServerStorage.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 
@@ -22,6 +23,7 @@ function module:GetService(name)
 
     self.Services[name] = false
     local newService = Object.Create(name, name)
+    if not newService then return end
     newService:SetProperty("Parent", Game)
     self.Services[name] = newService
     return newService

@@ -13,7 +13,7 @@ require("Engine.main")
 local RunService = Game:GetService("RunService")
 local ServerService = Game:GetService("ServerService")
 
-local socket = require("socket")
+local socket = require("socket") -- only used for the sleep command lol
 
 RunService._isServer = true
 
@@ -28,16 +28,22 @@ local lastTick = os.clock()
 local tickRate = 1/20
 
 local function Update(dt)
+	dt = dt * RunService:GetProperty("TimeScale")
     task.update(dt)
     RunService.DeltaTime = dt
     _G._rootObject:_update(dt)
 end
 
+if love.window then
+	love.window.setTitle("Server")
+end
+
 if _G.LaunchParameters.sepThread then -- running on separate thread
 	local channel = love.thread.getChannel("server_events")
 	while true do
-		dt = os.clock() - lastTick
-		lastTick = os.clock()
+		local tock = os.clock()
+		dt = (tock - lastTick)
+		lastTick = tock
 
 		Update(dt)
 		local msg = channel:pop()

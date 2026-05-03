@@ -51,8 +51,8 @@ module.ClassIcon = "Engine/Assets/InstanceIcons/Unknown.png"
 local function PropertyTypeMatches(value, desiredType)
 	if desiredType == "any" then return true end
 	if desiredType then
-		if desiredType == "Object" and (value == nil or type(value) == desiredType) then
-			return true
+		if desiredType == "Object" then
+			return (value == nil or type(value) == "string")
 		end
 
 		return typeof(value) == desiredType
@@ -81,6 +81,7 @@ function module.Create(className, id, ...)
     local class = RegisteredClasses[className]
     if not class then print(className) end
     local created = class.new(id, ...)
+    if not created then return end
     module.ObjectCreated:Fire(created.ID, created)
     return created
 end
@@ -139,17 +140,23 @@ function module:GetID()
 end
 
 -- property stuff
-function module:GetProperty(name)
-    local selfValue = self[name]
-    if selfValue ~= nil then
-        return selfValue
+function module:GetProperty(name, ignoreDefaults)
+    local info = self.ClassProperties[name]
+    local value = self[name]
+    if value == nil and info and not ignoreDefaults then
+        value = info.Value
     end
-    return self.ClassProperties[name] and self.ClassProperties[name].Value
+
+    if value and info and info.Type == "Object" then
+        value = All[value]
+    end
+
+    return value
 end
 function module:GetProperties() -- the modified properties (most the time) (unreliable)
     local list = {}
     for name, info in pairs(self.ClassProperties) do
-        list[name] = self[name]
+        list[name] = self:GetProperty(name, true)
     end
     return list
 end
@@ -159,14 +166,17 @@ function module:SetProperty(name, value)
         return print("Cannot change parent of a destroyed object")
     end
     local info = self.ClassProperties[name]
-    if not info then return self end -- invalid property
-    if info.Type == "Object" and type(value) == "string" then value = module.GetByID(value) end
+    if not info then print(name, "isnt a valid property of", self.__type) return self end -- invalid property
+    if info.Type == "Object" and type(value) == "Object" then value = value.ID end
     if not (PropertyTypeMatches(value, info.Type)) then return self end
 
     if info.Cleaner then
         value = TypeCleaners[info.Cleaner](value)
     end
     local currentValue = self:GetProperty(name)
+    if info.Type == "Object" then
+        currentValue = currentValue and currentValue.ID
+    end
     if currentValue == value then
         return self
     end
@@ -176,6 +186,7 @@ function module:SetProperty(name, value)
     else
         self[name] = value
     end
+    value = self:GetProperty(name)
     self.Changed:Fire(name, value)
 
     if self._cs and self._cs[name] then
@@ -299,10 +310,10 @@ function module:FindChild(name, recursive)
 end
 
 function module:WaitForChild(name, timeout)
-    local begin = os.clock()
+    local begin = Game:GetService("RunService"):GetProperty("ElapsedTime")
     timeout = timeout or math.huge
 
-    while os.clock() - begin < timeout do
+    while Game:GetService("RunService"):GetProperty("ElapsedTime") - begin < timeout do
         if not All[self.ID] then return end
         local found = self:FindChild(name)
         if found then
@@ -310,6 +321,36 @@ function module:WaitForChild(name, timeout)
         end
         task.wait()
     end
+end
+
+function module:SearchPath(path)
+    local root = self
+    for _, name in next, string.split(path, ".") do
+        root = root:FindChild(name)
+        if not root then break end
+    end
+    return root
+end
+
+function module:WaitPath(path, timeout)
+    local begin = Game:GetService("RunService"):GetProperty("ElapsedTime")
+    timeout = timeout or math.huge
+
+    local root = self
+    for _, name in next, string.split(path, ".") do
+        while true do
+            if Game:GetService("RunService"):GetProperty("ElapsedTime") - begin >= timeout then return end
+            if not All[root.ID] then return end
+            local found = root:FindChild(name)
+            if found then
+                root = found
+                break
+            end
+            task.wait()
+        end
+    end
+
+    return root
 end
 
 function module:GetConstraint(constraintType)
@@ -361,12 +402,22 @@ function module:_update(dt)
     end
     return true
 end
+function module:_fixedUpdate()
+    if not self:GetProperty("Simulated") then return false end
+    
+    self:FixedUpdate()
+
+    for _, child in ipairs(self:GetChildren()) do
+        child:_fixedUpdate(dt)
+    end
+    return true
+end
 
 function module:_drawChildren()
     local zIndices = {}
 	local layers = {}
 	for _, child in ipairs(self:GetChildren()) do
-		local zIndex = child.ZIndex or 0
+		local zIndex = child:GetProperty("ZIndex") or 0
 		if not layers[zIndex] then
 			layers[zIndex] = {}
 			table.insert(zIndices, zIndex)
@@ -391,6 +442,8 @@ function module:_draw()
     return true
 end
 
+function module:FixedUpdate()
+end
 function module:Update(dt)
 end
 function module:Draw()
@@ -456,6 +509,17 @@ function module:Replicate(prop, specificClient)
 			ServerService:SendMessageAll(message, data)
 		end
 	end
+end
+
+function module:ReplicateProperty(prop, value)
+    -- check instance types
+    local info = self.ClassProperties[prop]
+    if not info then return end
+
+    if info.Type == "Object" then
+        -- check server instances
+    end
+    self:SetProperty(prop, value)
 end
 
 function module:SerializeData()

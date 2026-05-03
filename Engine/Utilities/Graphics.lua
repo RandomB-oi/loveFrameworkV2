@@ -1,3 +1,5 @@
+love.graphics.setLineStyle("rough")
+
 love.graphics.cleanDrawText = function(textObject, renderPosition, renderSize, stretch, xAlign, yAlign)
 	local textSize = Vector.new(textObject:getDimensions())
 	local scale = renderSize / textSize
@@ -397,6 +399,8 @@ love.graphics.drawCustomText = function(text, x,y,scale, allignment)
 	elseif allignment == "left" then
 		X = x
 	end
+
+	love.graphics.setLineWidth(1)
 	
 	for i = 1, text:len() do
 		local v = text:sub(i,i)

@@ -4,7 +4,7 @@ module.__type = "SimulationSubStepContainer"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
-module.ClassIcon = "Engine/Assets/InstanceIcons/Folder.png"
+module.ClassIcon = "Engine/Assets/InstanceIcons/ScreenGui.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:CreateProperty("DesiredFPS", "number", 60)
 module:SetDefaultProperyValue("Name", module.__type)

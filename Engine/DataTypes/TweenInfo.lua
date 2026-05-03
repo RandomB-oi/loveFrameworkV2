@@ -26,8 +26,8 @@ local function CalcEasing(a, style, direction)
 	return EasingStyles[style][direction](x)
 end
 EasingStyles = {
-	Linear = {
-		Out = function(x)
+	[Enum.EasingStyle.Linear] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return x
 		end,
 		In = function(x)
@@ -35,47 +35,47 @@ EasingStyles = {
 		end,
 	},
 	
-	Quad = {
-		Out = function(x)
+	[Enum.EasingStyle.Quad] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return x^2
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5 and 2 * x * x or 1 - pow(-2 * x + 2, 2) / 2
 		end,
 	},
 
-	Cubic = {
-		Out = function(x)
+	[Enum.EasingStyle.Cubic] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return x^3
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5 and 4 * x * x * x or 1 - pow(-2 * x + 2, 3) / 2
 		end,
 	},
 
-	Quart = {
-		Out = function(x)
+	[Enum.EasingStyle.Quart] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return x^4
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5 and 8 * x * x * x * x or 1 - pow(-2 * x + 2, 4) / 2
 		end,
 	},
-	Quint = {
-		Out = function(x)
+	[Enum.EasingStyle.Quint] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return x^5
 		end,
 		
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5 and 16 * x * x * x * x * x or 1 - pow(-2 * x + 2, 5) / 2
 		end,
 	},
 
-	Elastic = {
-		Out = function(x)
+	[Enum.EasingStyle.Elastic] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return pow(2, -10 * x) * sin((x * 10 - 0.75) * c4) + 1
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x == 0
 			  and 0
 			  or x == 1
@@ -86,17 +86,17 @@ EasingStyles = {
 		end,
 	},
 
-	Sine = {
-		Out = function(x)
+	[Enum.EasingStyle.Sine] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return sin((x * pi) / 2)
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return -(cos(pi * x) - 1) / 2
 		end,
 	},
 
-	Bounce = {
-		Out = function(x)
+	[Enum.EasingStyle.Bounce] = {
+		[Enum.EasingDirection.Out] = function(x)
  			if (x < (1/2.75)) then
 		        return (7.5625*x*x);
 		    elseif (x < (2/2.75)) then
@@ -111,18 +111,18 @@ EasingStyles = {
 		    end
 		end,
 		
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5
-			  and (1 - CalcEasing(1 - 2 * x, "Bounce", "Out")) / 2
-			  or (1 + CalcEasing(2 * x - 1, "Bounce", "Out")) / 2
+			  and (1 - CalcEasing(1 - 2 * x, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)) / 2
+			  or (1 + CalcEasing(2 * x - 1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out)) / 2
 		end,
 	},
 
-	Back = {
-		Out = function(x)
+	[Enum.EasingStyle.Back] = {
+		[Enum.EasingDirection.Out] = function(x)
 			return 1 + c3 * math.pow(x - 1, 3) + c1 * math.pow(x - 1, 2);
 		end,
-		InOut = function(x)
+		[Enum.EasingDirection.InOut] = function(x)
 			return x < 0.5 and (math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
   			or (math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
 		end,
@@ -132,8 +132,8 @@ EasingStyles = {
 
 
 for style in pairs(EasingStyles) do
-	EasingStyles[style].In = function(x)
-		return flip(CalcEasing(flip(x), style, "Out"))
+	EasingStyles[style][Enum.EasingDirection.In] = function(x)
+		return flip(CalcEasing(flip(x), style, Enum.EasingDirection.Out))
 	end
 end
 
@@ -145,8 +145,8 @@ module.new = function(length, style, direction)
 	local self = setmetatable({}, module)
 
 	self.Length = length or 1
-	self.Style = style and EasingStyles[style] and style or "Linear"
-	self.Direction = direction and EasingStyles[self.Style][direction] and direction or "Out"
+	self.Style = style and EasingStyles[style] and style or Enum.EasingStyle.Linear
+	self.Direction = direction and EasingStyles[self.Style][direction] and direction or Enum.EasingDirection.Out
 
 	return self
 end

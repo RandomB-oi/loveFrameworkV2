@@ -199,14 +199,13 @@ module.new = function(id, propertyName, propertyType)
 			end
 			
 			local enumAsList = {}
-			for name, enumItem in pairs(Enum[propertyType]) do
+			for name, enumItem in next, Enum[propertyType] do
 				enumAsList[enumItem.Value] = name
 			end
-			local dropdown = Object.Create("Dropdown", enumAsList):SetProperties({
+			local dropdown = Object.Create("Dropdown", nil, enumAsList):SetProperties({
 				AnchorPoint = Vector.xAxis,
 				Position = UDim2.fromOffset(button.RenderPosition.X, button.RenderPosition.Y),
 				Parent = EditorScreen,
-				Enabled = true,
 			})
 			dropdown.ValueSelected:Connect(function(value)
 				self:SetValue(Enum[propertyType][value])

@@ -8,6 +8,7 @@ module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 -- module:SetDefaultProperyValue("Simulated", true)
 module:SetDefaultProperyValue("Visible", true)
+module:SetDefaultProperyValue("ZIndex", 9999999)
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
@@ -19,6 +20,7 @@ module.new = function(...)
 end
 
 function module:Draw()
+	love.graphics.setLineWidth(3)
 	for _, object in pairs(self:Get()) do
 		if object.RenderSize and object.RenderPosition then
 			love.graphics.drawOutline(object.RenderPosition, object.RenderSize, 0, object.AnchorPoint)

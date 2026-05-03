@@ -4,6 +4,7 @@ module.__type = "Players"
 module.__base = require("Engine.Objects.Services.Service")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/Players.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)
@@ -13,6 +14,18 @@ module:CreateProperty("RespawnTime", "number", 3)
 module:CreateProperty("StarterCharacter", "Object", nil)
 module:CreateProperty("CharacterParent", "Object", nil)
 module:CreateProperty("LocalPlayer", "Object", nil)
+
+local function ScanForLocalPlayer()
+	local players = Game:GetService("Players")
+	local localID = Game:GetService("ClientService"):GetProperty("LocalID")
+	if not players then return end
+	for _, newPlayer in next, players:GetPlayers() do
+		if newPlayer:GetProperty("UserID") == localID then
+			players:SetProperty("LocalPlayer", newPlayer)
+			break
+		end
+	end
+end
 
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
@@ -32,11 +45,10 @@ module.new = function(...)
 	end)
 
 	if Game:GetService("RunService"):IsClient() then
-		self.PlayerAdded:Connect(function(newPlayer)
-			if newPlayer:GetProperty("UserID") == Game:GetService("ClientService"):GetProperty("LocalID") then
-				self:SetProperty("LocalPlayer", newPlayer)
-			end
+		Game:GetService("ClientService"):BindToProperty("LocalID", function()
+			ScanForLocalPlayer()
 		end)
+		self.PlayerAdded:Connect(ScanForLocalPlayer)
 	end
 
 	return self

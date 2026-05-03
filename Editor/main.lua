@@ -12,6 +12,17 @@ local EditorFrame = Object.Create("Frame"):SetProperties({
 	AnchorPoint = Vector.one / 2,
 	Parent = EditorScreen,
 })
+-- local EditorFrame = Object.Create("ScrollingFrame"):SetProperties({
+-- 	Name = "EditorFrame",
+-- 	ZIndex = 10,
+-- 	Size = UDim2.new(1, 0, 1, 0),
+-- 	BackgroundColor = Color.Blank,
+-- 	Position = UDim2.fromScale(0.5, 0.5),
+-- 	AnchorPoint = Vector.one / 2,
+-- 	Parent = EditorScreen,
+-- 	CanvasColor = Color.new(1,1,1,1),
+-- 	CanvasSize = UDim2.new(0, 0, 0, 0),
+-- })
 
 local BannerSize = 24
 
@@ -21,6 +32,7 @@ local Banner = Object.Create("Frame"):SetProperties({
 	Size = UDim2.new(1, 0, 0, BannerSize),
 	BackgroundColor = Color.from255(46, 46, 46, 255),
 	Parent = EditorFrame,
+	ZIndex = 2,
 })
 
 local BannerList = Object.Create("UIListLayout"):SetProperties({
@@ -40,6 +52,7 @@ local function NewTopButton(image, text)
 		Size = UDim2.new(0, BannerSize, 0, BannerSize),
 		BackgroundColor = Color.Blank,
 		Parent = Banner,
+		Name = text or "Button",
 	})
 
 	local buttonBackdrop = Object.Create("Frame"):SetProperties({
@@ -48,6 +61,7 @@ local function NewTopButton(image, text)
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		BackgroundColor = Color.new(0, 0, 0, .25),
 		Parent = runButton,
+		Name = "ButtonBackdrop",
 	})
 
 	local runIcon = Object.Create("ImageLabel"):SetProperties({
@@ -55,6 +69,7 @@ local function NewTopButton(image, text)
 		BackgroundColor = Color.Blank,
 		Size = UDim2.fromScale(1, 1),
 		Parent = buttonBackdrop,
+		Name = "Icon",
 	})
 	Object.Create("UIAspectRatioConstraint"):SetProperty("Parent", runIcon)
 
@@ -69,6 +84,7 @@ local function NewTopButton(image, text)
 			BackgroundColor = Color.Blank,
 			TextColor = Color.White,
 			Parent = buttonBackdrop,
+			Name = "Label",
 		})
 
 		runButton:SetProperty("Size", runButton:GetProperty("Size") + UDim2.new(0, BannerSize * (text:len() * .5), 0, 0))
@@ -81,7 +97,6 @@ do
 	EditorFrame.BannerButtons.ToggleFullscreen = NewTopButton("Editor/Assets/Maximize.png", "Fullscreen")
 	EditorFrame.BannerButtons.Pause = NewTopButton("Editor/Assets/Pause.png", "Pause")
 	EditorFrame.BannerButtons.Unpause = NewTopButton("Editor/Assets/Unpause.png", "Unpause")
-	EditorFrame.BannerButtons.Unpause:SetProperty("Visible", false)
 end
 
 local Area = Object.Create("Frame"):SetProperties({
@@ -96,6 +111,7 @@ local ViewportWidget = Object.Create("Widget"):SetProperties({
 	AnchorPoint = Vector.new(.5, .5),
 	Size = UDim2.new(.5, 0, 1, 0),
 	Parent = Area,
+	ZIndex = 0,
 })
 ViewportWidget:SetTitle("Editor")
 
@@ -125,6 +141,7 @@ local Explorer = Object.Create("Explorer"):SetProperties({
 	Size = UDim2.new(.25, 0, 1, 0),
 	Parent = Area,
 	RootObject = Game,
+	ZIndex = 1,
 })
 
 local Properties = Object.Create("Properties"):SetProperties({
@@ -132,6 +149,7 @@ local Properties = Object.Create("Properties"):SetProperties({
 	AnchorPoint = Vector.new(0, 0),
 	Size = UDim2.new(.25, 0, 1, 0),
 	Parent = Area,
+	ZIndex = 1,
 })
 
 EditorFrame.BannerButtons.ToggleFullscreen.LeftClicked:Connect(function()
@@ -164,8 +182,6 @@ end)
 EditorFrame.BannerButtons.Unpause.LeftClicked:Connect(function()
 	setPaused(false)
 end)
-
--- scene.Parent = newEditor.Viewport
 
 local existingDropdown
 local function CreateDropdown(options, selected)

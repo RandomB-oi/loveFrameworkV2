@@ -4,6 +4,7 @@ module.__type = "Workspace"
 module.__base = require("Engine.Objects.Services.Service")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/Workspace.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:SetDefaultProperyValue("Simulated", true)

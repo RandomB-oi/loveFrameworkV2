@@ -25,7 +25,6 @@ module.new = function(...)
 
     self:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
         self._updateRender = true
-		print("update it ")
     end)
     self:GetPropertyChangedSignal("CanvasSize"):Connect(function()
         self._updateRender = true
@@ -85,7 +84,7 @@ function module:GetPadding()
 end
 
 function module:GetClampedCanvasPosition(canvasPosition)
-	local canvasPosition = canvasPosition or self:GetProperty("CanvasPosition")
+	canvasPosition = canvasPosition or self:GetProperty("CanvasPosition")
 	return canvasPosition:Clamp(Vector.zero, self.RenderCanvasSize-self.RenderSize)
 end
 
@@ -143,6 +142,7 @@ end
 function module:Draw()
 	module.__base.Draw(self)
 
+	self:PushShader()
 	if self.Canvas then
 		self:GetProperty("CanvasColor"):Apply()
 		love.graphics.cleanDrawImage(self.Canvas, self.RenderPosition, self.RenderSize)
@@ -180,6 +180,7 @@ function module:Draw()
 		)
 	end
 	love.graphics.pop()
+	self:PopShader()
 end
 
 return module:Register()

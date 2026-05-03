@@ -11,10 +11,7 @@ local function newHandle()
 end
 
 local function GetTime()
-    
-    -- local run = Game:GetService("RunService")
-	-- return run.ElapsedTime
-    return os.clock()
+    return Game:GetService("RunService"):GetProperty("ElapsedTime")
 end
 
 function task.update(dt)

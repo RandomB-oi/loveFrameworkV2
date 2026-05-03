@@ -1,1 +1,1 @@
-love . --editor
+start love . --editor

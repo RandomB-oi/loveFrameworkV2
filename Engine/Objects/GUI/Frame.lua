@@ -12,6 +12,9 @@ module:CreateProperty("Size", "UDim2", UDim2.new(0,100,0,100))
 module:CreateProperty("Position", "UDim2", UDim2.new(0,0,0,0))
 module:CreateProperty("AnchorPoint", "Vector", Vector.new(0,0))
 module:CreateProperty("BackgroundColor", "Color", Color.new(1,1,1,1))
+module:CreateProperty("BorderColor", "Color", Color.new(0,0,0,1))
+module:CreateProperty("BorderSize", "number", 0)
+module:CreateProperty("BorderAlignment", "BorderAlignment", Enum.BorderAlignment.Outside)
 module:CreateProperty("LayoutOrder", "number", 1)
 
 
@@ -134,7 +137,7 @@ function module:UpdateRenderProperties(parentPos, parentSize)
         newPos = parentPos + pos:Calculate(parentSize) - newSize * anchor
     end
 
-    if newPos == prevPos and newSize == prevSize and not self:IsA("ScrollingFrame") then return end
+    -- if newPos == prevPos and newSize == prevSize and not self:IsA("ScrollingFrame") then return end
 
     self.RenderPosition = newPos
     self.RenderSize = newSize
@@ -171,22 +174,61 @@ function module:Update(dt)
     end
 end
 
+function module:DrawBorder()
+    local borderColor = self:GetProperty("BorderColor")
+    local borderSize  = self:GetProperty("BorderSize")
+    local borderAlignment  = self:GetProperty("BorderAlignment")
+    if borderSize ~= 0 and borderColor.A > 0 then
+        love.graphics.setLineWidth(borderSize)
+        borderColor:Apply()
+        local pos = self.RenderPosition
+        local size = self.RenderSize
+
+        if borderAlignment == Enum.BorderAlignment.Outside then
+            local borderVec = Vector.one*borderSize
+            pos = pos - borderVec/2
+            size = size + borderVec
+        elseif borderAlignment == Enum.BorderAlignment.Inside then
+            local borderVec = Vector.one*borderSize
+            pos = pos + borderVec/2
+            size = size - borderVec
+
+        elseif borderAlignment == Enum.BorderAlignment.Middle then
+            -- its naturally in the middle
+        end
+        
+        love.graphics.rectangle("line", pos.X, pos.Y, size.X, size.Y)
+    end
+end
+
+function module:PushShader()
+    self._setShader, self._prevShader = nil, nil
+    if self.Shader then
+        self.setShader, self.prevShader = true, love.graphics.getShader()
+        self.Shader.Update(self.Shader.Shader)
+        love.graphics.setShader(self.Shader.Shader)
+    end
+end
+
+function module:PopShader()
+    if self.setShader then
+        love.graphics.setShader(self.prevShader)
+    end
+
+    self._setShader, self._prevShader = nil, nil
+end
+
 function module:Draw()
+    self:PushShader()
+    
     local backgroundColor = self:GetProperty("BackgroundColor")
     if backgroundColor.A > 0 then
         backgroundColor:Apply()
-        local setShader, prevShader
-        if self.Shader then
-            setShader, prevShader = true, love.graphics.getShader()
-            self.Shader.Update(self.Shader.Shader)
-            love.graphics.setShader(self.Shader.Shader)
-        end
         love.graphics.rectangle("fill", self.RenderPosition.X, self.RenderPosition.Y, self.RenderSize.X, self.RenderSize.Y)
-        
-        if setShader then
-            love.graphics.setShader(prevShader)
-        end
     end
+
+    self:DrawBorder()
+    self:PopShader()
 end
 
 return module:Register()

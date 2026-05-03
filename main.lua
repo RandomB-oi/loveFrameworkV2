@@ -2,7 +2,7 @@ _G._rootObject = nil
 
 local ogHandler = love.errhand
 love.errhand = function(message)
-    logError(message, true)
+    pcall(logError, message, true)
     ogHandler(message)
 end
 

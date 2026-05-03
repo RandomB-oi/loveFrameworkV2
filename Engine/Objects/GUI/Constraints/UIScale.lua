@@ -6,6 +6,7 @@ setmetatable(module, module.__base)
 
 module.ConstraintCategory = "Scale"
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/UIScale.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 

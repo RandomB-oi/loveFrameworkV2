@@ -4,6 +4,7 @@ module.__type = "Player"
 module.__base = require("Engine.Objects.Object")
 setmetatable(module, module.__base)
 
+module.ClassIcon = "Engine/Assets/InstanceIcons/Player.png"
 module.ClassProperties = module.__base:CopyProperties()
 module:SetDefaultProperyValue("Name", module.__type)
 module:CreateProperty("UserID", "string", "0")
@@ -16,7 +17,6 @@ module.new = function(id)
     self.CharacterRemoved = self.Maid:Add(Signal.new())
 
     self.Destroying:Connect(function()
-        print("player left")
         self:RemoveCharacter()
     end)
 

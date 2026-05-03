@@ -8,7 +8,7 @@ local typeLookup = {
 		return id
 	end,
 
-	Binary = Binary.new,
+	Buffer = Buffer.Decode,
 	Vector = Vector.new,
 	Color = Color.from255,
 	ColorSequence = ColorSequence.new,
@@ -27,6 +27,9 @@ function module.Encode(value, cyclicValues)
 	if type(value) == "table" then
 		if cyclicValues[value] then return "Cyclic Value" end
 		cyclicValues[value] = true
+		if value.__type == "Buffer" then
+			return {_T = value.__type, _V = {Buffer.Encode(value)}}
+		end
 		if value.Serialize then
 			local t = typeof(value)
 			return {_T = t, _V = {value:Serialize()}}

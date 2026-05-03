@@ -63,8 +63,4 @@ function module:Update(dt)
     end
 end
 
--- function module:Draw()
---     love.graphics.circle("fill", (math.cos(os.clock())/2+0.5)*800, (math.sin(os.clock())/2+0.5)*600, 10)
--- end
-
 return module:Register()

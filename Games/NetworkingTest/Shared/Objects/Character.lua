@@ -39,6 +39,7 @@ module.new = function(...)
             end
 
             self.Position = pos -- doesnt fire changed signals or replication
+            -- self:SetProperty("Position", pos)
         end)
     else
         task.spawn(function()
@@ -69,9 +70,11 @@ function module:Owns(player)
     -- return charID == self.ID
 end
 
-function module:Update(dt)
-    -- local dt = Run:GetProperty("FixedTickRate")
-    module.__base.Update(self, dt)
+function module:FixedUpdate()
+    local dt = Run:GetProperty("FixedTickRate")
+    module.__base.FixedUpdate(self, dt)
+-- function module:Update(dt)
+--     module.__base.Update(self, dt)
     if Run:IsServer() then return end
     if not self:Owns() then return end
 

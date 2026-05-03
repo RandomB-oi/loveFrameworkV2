@@ -28,6 +28,17 @@ module.new = function(id)
         end)
     end)
 
+    self:GetPropertyChangedSignal("Character"):Connect(function()
+        local char = self:GetProperty("Character")
+        if char then
+            self.CharacterAdded:Fire(char)
+            Game:GetService("Players").CharacterAdded:Fire(self, char)
+        else
+            self.CharacterRemoved:Fire()
+            Game:GetService("Players").CharacterRemoved:Fire(self)
+        end
+    end)
+
     if Game:GetService("RunService"):IsServer() then
         self.CharacterRemoved:Fire()
         -- self:LoadCharacter()
@@ -41,8 +52,6 @@ function module:RemoveCharacter()
     if char then
         char:Destroy()
         self:SetProperty("Character", nil)
-        self.CharacterRemoved:Fire()
-        Game:GetService("Players").CharacterRemoved:Fire(self)
     end
 end
 
@@ -62,8 +71,6 @@ function module:LoadCharacter()
         self:RemoveCharacter()
     end)
     self:SetProperty("Character", newChar)
-    self.CharacterAdded:Fire(newChar)
-    players.CharacterAdded:Fire(self, newChar)
     return newChar
 end
 

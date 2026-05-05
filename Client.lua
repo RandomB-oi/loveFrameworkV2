@@ -9,17 +9,31 @@ _G._rootObject = _G._rootObject or Game
 love.window.setMode(800, 600, {resizable = true})
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-local fixedTickTime = 0
+local lastRun, tickTimer = 0, 0
+
 love.update = function(dt)
     dt = dt * RunService:GetProperty("TimeScale")
-    fixedTickTime = fixedTickTime + dt
-
+    
     task.update(dt)
     RunService.DeltaTime = dt
+    
+    local st = RunService:GetProperty("SyncedTime")
+	local fixedStepsDt = st-lastRun
+	lastRun = st
+    tickTimer = tickTimer + fixedStepsDt
     local fixedTickRate = RunService:GetProperty("FixedTickRate")
-    while fixedTickTime >= fixedTickRate do
-        fixedTickTime = fixedTickTime - fixedTickRate
-        _G._rootObject:_fixedUpdate()
+    local ticks = 0
+
+	if fixedStepsDt <= -1 then -- when joining a server
+		tickTimer = 0
+	end
+
+    while tickTimer >= fixedTickRate do
+        ticks = ticks + 1
+        tickTimer = tickTimer - fixedTickRate
+        if ticks < 300 then
+            _G._rootObject:_fixedUpdate()
+        end
         RunService:SetProperty("CurrentTick", RunService:GetProperty("CurrentTick") + 1)
     end
     _G._rootObject:_update(dt)

@@ -494,6 +494,9 @@ function module:Replicate(prop, specificClient)
 		if not prop or (not didReplicate and can) then
 			message, data = "CreateInstance", self:SerializeData()
 		else
+            local propInfo = self.ClassProperties[prop]
+            if not (propInfo and propInfo.Replicates) then return end
+            
 			message, data = "UpdateProperty", {
 				ID = self.ID,
 				Prop = prop,
@@ -536,7 +539,6 @@ function module:SerializeData()
         local propInfo = self.ClassProperties[prop]
 
         local can = propInfo.Replicates
-        if not can then end
         
         if can and propInfo.Type == "Object" and value then
             if value:CanReplicate() then

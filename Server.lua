@@ -27,10 +27,25 @@ ServerService:StartServer(6767)
 local lastTick = os.clock()
 local tickRate = 1/20
 
+local lastRun, tickTimer = 0, 0
 local function Update(dt)
 	dt = dt * RunService:GetProperty("TimeScale")
     task.update(dt)
     RunService.DeltaTime = dt
+
+
+    local st = RunService:GetProperty("SyncedTime")
+	local fixedStepsDt = st-lastRun
+	lastRun = st
+    tickTimer = tickTimer + fixedStepsDt
+    local fixedTickRate = RunService:GetProperty("FixedTickRate")
+
+    while tickTimer >= fixedTickRate do
+        tickTimer = tickTimer - fixedTickRate
+        _G._rootObject:_fixedUpdate()
+        RunService:SetProperty("CurrentTick", RunService:GetProperty("CurrentTick") + 1)
+    end
+
     _G._rootObject:_update(dt)
 end
 

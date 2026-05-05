@@ -11,7 +11,7 @@ local Holder = Object.Create("Frame"):SetProperties({
     Size = UDim2.new(0, 1, 0, 1),
     Position = UDim2.fromScale(0.5,0.5),
     AnchorPoint = Vector.new(0.5,0.5),
-    BackgroundColor = Color.new(0,1,1,1),
+    BackgroundColor = Color.Blank,
     Parent = MainRender,
 })
 
@@ -26,7 +26,7 @@ local RenderHolder = Object.Create("Frame"):SetProperties({
     Size = UDim2.new(1, 0, 1, 0),
     Position = UDim2.fromScale(0.5,0.5),
     AnchorPoint = Vector.new(0.5,0.5),
-    BackgroundColor = Color.new(1,0,1,1),
+    BackgroundColor = Color.Blank,
     Parent = Holder,
 })
 
@@ -50,15 +50,15 @@ local ReplicateChunkData = Object.Create("RemoteEvent"):SetProperties({
 Players:SetProperty("CharacterParent", RenderHolder)
 
 
+        -- Object.Create("WorldChunk"):SetProperties({
+        --     Parent = RenderHolder,
+        --     -- Position = UDim2.fromScale(x*8, y*8)
+        -- })
+for x = -2, 2 do
+    for y = -2, 2 do
         Object.Create("WorldChunk"):SetProperties({
             Parent = RenderHolder,
-            -- Position = UDim2.fromScale(x*8, y*8)
+            Position = UDim2.fromScale(x*8, y*8)
         })
--- for x = -2, 2 do
---     for y = -2, 2 do
---         Object.Create("WorldChunk"):SetProperties({
---             Parent = RenderHolder,
---             Position = UDim2.fromScale(x*8, y*8)
---         })
---     end
--- end
+    end
+end

@@ -8,14 +8,23 @@ return function()
     task.spawn(function()
         local CanvasHolder = workspace:WaitPath("WorldRender.Holder.RenderHolder")
 
+
+        local player = Players:GetProperty("LocalPlayer")
+        player.CharacterAdded:Connect(function()
+            local char = player:GetProperty("Character")
+            if not char then return end
+
+            char:BindToProperty("Position", function()
+                local renderSize = char:GetProperty("Parent").RenderSize/2
+                CanvasHolder:SetProperty("Position", -char:GetProperty("Position") + UDim2.new(0.5, renderSize.X, 0.5, renderSize.Y))
+            end)
+        end)
+        
         task.spawn(function()
             while connected do
-                local player = Players:GetProperty("LocalPlayer")
                 local char = player and player:GetProperty("Character")
                 
                 if char then
-                    local renderSize = char:GetProperty("Parent").RenderSize/2
-                    CanvasHolder:SetProperty("Position", -char:GetProperty("Position") + UDim2.new(0.5, renderSize.X, 0.5, renderSize.Y))
                 end
                 task.wait()
             end

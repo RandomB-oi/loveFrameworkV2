@@ -98,6 +98,10 @@ function module.GetByID(id)
     return All[id]
 end
 
+function module:__tostring()
+    return self.__type..": "..self.ID
+end
+
 module.new = function(id)
     local self = setmetatable({}, module)
     self.Maid = Maid.new()

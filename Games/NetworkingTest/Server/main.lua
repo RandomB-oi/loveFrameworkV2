@@ -1,4 +1,6 @@
 local Players = Game:GetService("Players")
+local PlayerDataManager = require(GamePath.."Server.PlayerDataManager")
+
 Players:SetProperty("StarterCharacter", Object.Create("Character"))
 
 local MainRender = Object.Create("GUIContainer"):SetProperties({
@@ -26,7 +28,7 @@ local RenderHolder = Object.Create("Frame"):SetProperties({
     Size = UDim2.new(1, 0, 1, 0),
     Position = UDim2.fromScale(0.5,0.5),
     AnchorPoint = Vector.new(0.5,0.5),
-    BackgroundColor = Color.Blank,
+    BackgroundColor = Color.Red,
     Parent = Holder,
 })
 
@@ -42,23 +44,40 @@ local Remotes = Object.Create("Folder"):SetProperties({
     Parent = Storage,
 })
 
-local ReplicateChunkData = Object.Create("RemoteEvent"):SetProperties({
-    Name = "ReplicateChunkData",
-    Parent = Remotes,
+Object.Create("RemoteEvent"):SetProperties({
+    Name = "ReplicateContainerGroup",
+    Parent = Remotes
 })
 
 Players:SetProperty("CharacterParent", RenderHolder)
 
+Players.CharacterAdded:Connect(function(player, character)
+    local data = PlayerDataManager.Get(player, 10)
+    if not data then return end
 
-        -- Object.Create("WorldChunk"):SetProperties({
-        --     Parent = RenderHolder,
-        --     -- Position = UDim2.fromScale(x*8, y*8)
-        -- })
-for x = -2, 2 do
-    for y = -2, 2 do
-        Object.Create("WorldChunk"):SetProperties({
-            Parent = RenderHolder,
-            Position = UDim2.fromScale(x*8, y*8)
-        })
+    local newInventory = Object.Create("PlayerInventory", "InvObj"..tostring(player:GetProperty("UserID")))
+    newInventory:SetProperty("Parent", player)
+    newInventory:GetContainerGroup():GiveAccess(player)
+    character:Teleport(data.Position)
+
+    while player:GetProperty("Parent") and character:GetProperty("Parent") do
+        data.Position = character.ServerPosition
+        task.wait(1/5)
     end
-end
+end)
+
+-- local length = 100
+-- local newData = Buffer.create(length)
+-- for i = 0, length-1 do
+--     local value = math.random(0,255)
+--     Buffer.writeu8(newData, i, value)
+-- end
+
+-- SaveService:Set("test-key", {
+--     Position = Vector.new(100, 50),
+--     Data = newData,
+--     Name = "Hello World",
+--     Bonus = {
+--         "A",6,false,Enum.KeyCode.F
+--     }
+-- })

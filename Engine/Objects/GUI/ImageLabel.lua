@@ -14,7 +14,7 @@ module.new = function(...)
 	local self = setmetatable(module.__base.new(...), module)
 
 	self:GetPropertyChangedSignal("Image"):Connect(function(newImage)
-		if newImage then
+		if newImage and newImage ~= "" then
 			self._imageObject = love.graphics.newImage(newImage) -- i overwrote this with a cached function
 		end
 	end)

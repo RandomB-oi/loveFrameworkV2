@@ -51,14 +51,20 @@ end
 
 -- ── construction ─────────────────────────────────────────────────────
 
----Create a zero-filled buffer of `size` bytes.
+local function ToLua(data)
+    return "Buffer.Decode([[".. buffer.Encode(data) .."]])"
+end
+
 function buffer.create(size)
     assert(type(size) == "number" and size >= 0 and size == math.floor(size),
         "size must be a non-negative integer")
     local data = {}
     for i = 1, size do data[i] = 0 end
     return setmetatable({ __type = "Buffer", __data = data },
-        { __tostring = function() return "buffer(" .. tostring(size) .. ")" end })
+        {
+            __tostring = function() return "buffer(" .. tostring(size) .. ")" end,
+            __index = {ToLua = ToLua},
+        })
 end
 
 function buffer.Encode(buffer)

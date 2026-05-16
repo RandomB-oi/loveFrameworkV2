@@ -1,6 +1,19 @@
 local TweenClass = {}
+local AllTweens = {}
+
+local function CancelTweens(object, properties)
+	for _, tween in next, AllTweens[object] or {} do
+		for prop in next, properties do
+			tween.Properties[prop] = nil
+			tween.OriginalProperties[prop] = nil
+		end
+		if not next(tween.Properties) then
+			tween:Destroy()
+		end
+	end
+end
+
 do
-	local AllTweens = {}
 
 	local module = TweenClass
 	module.__index = module
@@ -34,12 +47,7 @@ do
 
 		self:SetParent(self.Object)
 		self.Parent = self.Object
-		for _, tween in next, AllTweens[self.Object] or {} do
-			for prop in next, self.Properties do
-				tween.Properties[prop] = nil
-				tween.OriginalProperties[prop] = nil
-			end
-		end
+		CancelTweens(self.Object, self.Properties)
 
 		AllTweens[self.Object] = AllTweens[self.Object] or {}
 		AllTweens[self.Object][self.ID] = self
@@ -120,6 +128,10 @@ module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
 
 	return self
+end
+
+function module:CancelTweens(object, properties)
+	return CancelTweens(object, properties)
 end
 
 function module:GetValue(alpha, style, direction)

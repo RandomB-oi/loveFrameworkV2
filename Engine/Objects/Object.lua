@@ -67,7 +67,6 @@ local TypeCleaners = {
 }
 
 module.ObjectCreated = Signal.new()
-module.HangingObjectReferences = {}
 
 function module.GetClass(className)
     return RegisteredClasses[className]

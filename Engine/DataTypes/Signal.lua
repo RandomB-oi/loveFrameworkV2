@@ -41,7 +41,7 @@ end
 
 function module:Fire(...)
 	local args = {...}
-
+	
 	for _, connection in pairs(table.shallowCopy(self)) do
 		if type(connection) == "table" then
 			xpcall(coroutine.wrap(connection[1]), function(err)

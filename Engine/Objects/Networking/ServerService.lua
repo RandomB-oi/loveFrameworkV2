@@ -38,7 +38,7 @@ local function AddClient(self, peer)
         self.Clients[clientID] = nil
         local exitCode = newClient.DisconnectCode or 0
 
-        newClient.Peer:disconnect_later(exitCode)
+        -- newClient.Peer:disconnect_later(exitCode)
         self.ClientDisconnected:Fire(clientID, exitCode)
     end)
 
@@ -122,6 +122,7 @@ end
 
 function module:DisconnectClient(clientID, code)
     local client = self.Clients[clientID]
+    if not client then return end
     client.DisconnectCode = code
     client:Destroy()
 end
@@ -156,7 +157,7 @@ function module:Update()
                 local success, data = encodingService:Decode(event.data)
                 if success and data then
                     local clientID = GetClientIDFromPeer(self, event.peer)
-                    if clientID then 
+                    if clientID then
                         self.MessageRecieved:Fire(clientID, data.name, data.data)
                     end
                 end

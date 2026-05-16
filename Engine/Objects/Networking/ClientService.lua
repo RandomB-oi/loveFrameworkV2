@@ -43,6 +43,7 @@ module.new = function(...)
         --     self.Connected:Wait()
         -- end
         -- print(message)
+
         if message == "CreateInstance" then
             local data = Serializer.Decode(data)
             local object = self:GetInstance(data.ID, data.ClassName)

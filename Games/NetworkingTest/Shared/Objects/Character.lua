@@ -28,7 +28,7 @@ local function IsBogus(self, packet)
 	if packet.Tick % 1 ~= 0 then
 		return true
 	end
-	
+
     local currentTick = Run:GetProperty("CurrentTick")
     local tickRate = Run:GetProperty("FixedTickRate")
 
@@ -38,6 +38,7 @@ end
 module.new = function(...)
     local self = setmetatable(module.__base.new(...), module)
     self.MoveVector = Vector.zero
+    self.ServerPosition = self:GetProperty("Position")
     self.StateBuffer = {}
 
     if Run:IsServer() then
@@ -55,14 +56,6 @@ module.new = function(...)
                     
             if IsBogus(self, input) then print("bogus") return end
             table.insert(self.InputQueue, input)
-
-            -- for _, otherPlayer in next, Players:GetPlayers() do
-            --     if otherPlayer ~= player then
-            --         self.UpdateRemote:FireClient(otherPlayer, pos)
-            --     end
-            -- end
-
-            -- self.Position = pos -- doesnt fire changed signals or replication
         end)
     else
         self.InputBuffer = {}
@@ -75,21 +68,18 @@ module.new = function(...)
                 if self:Owns() then
                     return
                 end
-                -- self:SetProperty("Position", pos)
 
                 local tween = TweenService:Create(self, ReplicateTweenInfo, {Position = state.Position})
                 tween:Play()
             end)
-            -- while self.UpdateRemote:GetProperty("Parent") == self do
-            --     if self:Owns() then
-            --         self.UpdateRemote:FireServer(self:GetProperty("Position"))
-            --     end
-            --     task.wait(ReplicationStepTime)
-            -- end
         end)
     end
 
     return self
+end
+
+function module:GetOwner()
+    Players:GetPlayerByCharacter(self)
 end
 
 function module:Owns(player)
@@ -100,7 +90,7 @@ function module:Owns(player)
     -- return charID == self.ID
 end
 
-local BufferSize = 1024
+local BufferSize = 512
 
 function module:ServerHandleTick()
     local latestTick, latestPacket = -1, nil
@@ -148,10 +138,11 @@ function module:HandleServerReconciliation()
 
 	local positionError = (v1 - v2):Length()
     
-	if positionError > 0.01 then
+	if positionError > 0.05 then
 		print("Reconcile")
 
-        self:SetProperty("Position", self.LatestServerState.Position)
+        TweenService:CancelTweens(self, {Position = true})
+        self.ServerPosition = self.LatestServerState.Position
 		self.StateBuffer[serverStateBufferIndex] = self.LatestServerState
 
 		local tickToProcess = self.LatestServerState.Tick + 1
@@ -187,12 +178,15 @@ function module:ClientHandleTick()
 end
 
 function module:ProcessMovement(input)
+    local dt = Run:GetProperty("FixedTickRate")
     local moveVector = input.InputVector
-    local newPos = self:GetProperty("Position") + UDim2.fromScale(moveVector.X, moveVector.Y)
-    if Run:IsServer() then
-        self.Position = newPos
+    local newPos = self.ServerPosition + UDim2.fromScale(moveVector.X, moveVector.Y)
+    self.ServerPosition = newPos
+
+    if Run:IsClient() then
+        TweenService:Create(self, TweenInfo.new(dt, Enum.EasingStyle.Linear), {Position = newPos}):Play()
     else
-        self:SetProperty("Position", newPos)
+        self.Position = newPos
     end
 
 	local statePayload = {}
@@ -200,6 +194,16 @@ function module:ProcessMovement(input)
 	statePayload.Position = newPos
 
 	return statePayload
+end
+
+function module:Teleport(position)
+    self.ServerPosition = position
+    self:SetProperty("Position", position)
+    
+    -- self.UpdateRemote:FireAllClients({
+    --     Tick = Run:GetProperty("CurrentTick"),
+    --     Position = position,
+    -- })
 end
 
 function module:FixedUpdate()

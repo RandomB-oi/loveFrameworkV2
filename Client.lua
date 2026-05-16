@@ -31,7 +31,7 @@ love.update = function(dt)
     while tickTimer >= fixedTickRate do
         ticks = ticks + 1
         tickTimer = tickTimer - fixedTickRate
-        if ticks < 300 then
+        if ticks < 60 then
             _G._rootObject:_fixedUpdate()
         end
         RunService:SetProperty("CurrentTick", RunService:GetProperty("CurrentTick") + 1)

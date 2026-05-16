@@ -50,7 +50,11 @@ end
 function module:Update(dt)
 	module.__base.Update(self, dt)
 
-	self:SetProperty("Hovering", self:MouseHovering())
+	if self:IsVisible() then
+		self:SetProperty("Hovering", self:MouseHovering())
+	else
+		self:SetProperty("Hovering", false)
+	end
 end
 
 

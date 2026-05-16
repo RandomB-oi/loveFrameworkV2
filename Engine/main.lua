@@ -16,13 +16,36 @@ typeof = function(value)
 	return t
 end
 
+local ogTostring = tostring
+tostring = function(value)
+	if type(value) == "table" or type(value) == "Object" then
+		local func = value.__tostring
+		if func then
+			return func(value)
+		end
+	end
+
+	return ogTostring(value)
+end
+
+local ogPrint = print
+print = function(...)
+	local list = {}
+	for _, value in next, {...} do
+		table.insert(list, tostring(value))
+	end
+	local str = table.concat(list, ", ")
+	logError(str)
+	ogPrint(str)
+end
+
 logError = function(message, pause)
 	local file = io.open("debug_log.txt", "a")
     if file then
         file:write("\n"..os.date().."\n"..message.."\n")
         file:close()
     end
-    print(message)
+    -- print(message)
 	if pause then
     	os.execute("pause")
 	end

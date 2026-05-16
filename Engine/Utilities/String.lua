@@ -94,17 +94,23 @@ for i,v in pairs(string) do
 	end
 end
 
-local existingGUIDS = {}
-function GenerateGUID(length)
-	math.randomseed(os.clock() + os.time())
-	length = length or 24
-	local id = tostring(math.random(0, 10^length))
-	id = id .. string.rep("0", length - id:len())
+local characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+local function randomChar()
+	local i = math.random(1, characters:len())
+	return characters:sub(i,i)
+end
 
-	if existingGUIDS[id] then
-		return GenerateGUID(length)
+function GenerateGUID(length)
+	length = length or 24
+
+	-- local id = tostring(math.random(0, 10^length))
+	-- id = id .. string.rep("0", length - id:len())
+
+	local id = ""
+	for i = 1, length do
+		id = id .. randomChar()
 	end
-	existingGUIDS[id] = true
+
 	return id
 end
 

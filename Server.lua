@@ -72,9 +72,10 @@ if _G.LaunchParameters.sepThread then -- running on separate thread
 			socket.sleep(tickRate)
 		end
 	end
-	ServerService:DisconnectAll()
+	-- ServerService:DisconnectAll()
 	print("Close server")
 else
+	print("use base love callbacks")
 	love.update = Update
 	
 	love.draw = function()

@@ -1,1 +1,2 @@
-start love . --server
+love . --server
+pause
